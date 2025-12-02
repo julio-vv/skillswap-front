@@ -98,7 +98,25 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                         <>
                                             <Autocomplete
                                                 multiple
-                                                options={allSkills || []} // Lista completa de habilidades
+                                                options={(
+                                                    allSkills ? 
+                                                    [...allSkills].sort((a, b) => {
+                                                        // Primero ordenar por grupo alfabéticamente
+                                                        const groupA = a.nombre_tipo || 'Otras';
+                                                        const groupB = b.nombre_tipo || 'Otras';
+                                                        const groupCompare = groupA.localeCompare(groupB);
+                                                        
+                                                        // Si están en el mismo grupo, ordenar por nombre de habilidad
+                                                        if (groupCompare === 0) {
+                                                            const nameA = a.nombre_habilidad || a.nombre || '';
+                                                            const nameB = b.nombre_habilidad || b.nombre || '';
+                                                            return nameA.localeCompare(nameB);
+                                                        }
+                                                        
+                                                        return groupCompare;
+                                                    }) : 
+                                                    []
+                                                )}
                                                 getOptionLabel={(option) => option.nombre_habilidad || option.nombre || ''}
                                                 isOptionEqualToValue={(option, value) => option.id === value.id}
                                                 value={selectedOptions}
@@ -110,8 +128,8 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                                     field.onChange(ids);
                                                 }}
 
-                                                // Agrupación por Tipo de Habilidad (usando las props skillTypes)
-                                                groupBy={(option) => skillTypes.find(type => type.id === option.tipo_id)?.nombre || 'Otras'}
+                                                // Agrupación por Tipo de Habilidad usando nombre_tipo directamente
+                                                groupBy={(option) => option.nombre_tipo || 'Otras'}
 
                                                 renderInput={(params) => (
                                                     <TextField
