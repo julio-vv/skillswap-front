@@ -5,9 +5,6 @@ const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.omarmontanares.com
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
 });
 
 // Interceptor para inyectar el Token en peticiones futuras (después del login)
@@ -17,6 +14,19 @@ axiosInstance.interceptors.request.use(
         if (token) {
             // El backend Django/DRF usa el formato 'Token <key>'
             config.headers.Authorization = `Token ${token}`; 
+        }
+        // Si enviamos FormData, dejar que el navegador establezca el boundary automáticamente
+        if (config.data instanceof FormData) {
+            if (config.headers) {
+                if (config.headers['Content-Type']) delete config.headers['Content-Type'];
+                if (config.headers['content-type']) delete config.headers['content-type'];
+            }
+            try {
+                const ct = (config.headers && (config.headers['Content-Type'] || config.headers['content-type'])) || '(unset)';
+                console.log('[Axios] Enviando FormData', config.method?.toUpperCase(), config.url, 'Content-Type:', ct);
+            } catch {}
+        } else {
+            // Para JSON, axios establecerá application/json por defecto si no se especifica
         }
         return config;
     },

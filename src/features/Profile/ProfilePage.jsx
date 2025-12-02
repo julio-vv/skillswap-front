@@ -35,6 +35,7 @@ const ProfilePage = () => {
         }
     });
 
+
     const {
         handleSubmit,
         reset,
@@ -103,11 +104,12 @@ const ProfilePage = () => {
         const payload = { ...data };
 
         try {
-            // Si hay una nueva imagen (un File o FileList), enviamos como FormData (multipart/form-data)
+            // Determinar si hay archivo nuevo
             const mediaIsFile = payload.media && (typeof File !== 'undefined') && (
                 payload.media instanceof File || payload.media instanceof FileList
             );
 
+            // Si hay archivo nuevo -> usar FormData
             if (mediaIsFile) {
                 const formData = new FormData();
 
@@ -116,13 +118,27 @@ const ProfilePage = () => {
                         // Enviar múltiples entradas con la misma clave es compatible con DRF
                         payload[key].forEach(id => formData.append('habilidades', id));
                     } else if (key === 'media') {
-                        // `media` puede ser FileList o File
+                        // Agregar el archivo solo si es un File
                         const file = payload.media instanceof FileList ? payload.media[0] : payload.media;
-                        if (file) formData.append('media', file);
-                    } else {
+                        if (file instanceof File) {
+                            formData.append('media', file);
+                        }
+                        // Si no es File, no agregar nada
+                    } else if (payload[key] !== null && payload[key] !== undefined && payload[key] !== '') {
                         formData.append(key, payload[key]);
                     }
                 });
+
+                // // DEBUG dentro de onSubmit: verificar qué se envía
+                // try {
+                //     console.log('=== DEBUG FormData (onSubmit) ===');
+                //     console.log('mediaIsFile:', mediaIsFile);
+                //     console.log('payload.media type:', typeof payload.media, payload.media);
+                //     for (let pair of formData.entries()) {
+                //         console.log(pair[0] + ':', pair[1]);
+                //     }
+                //     console.log('=================================');
+                // } catch {}
 
                 // Determinar endpoint: preferimos `usuarios/{id}/` si tenemos el id
                 // (puede venir del contexto `user` o de `profileData` cargada previamente).
@@ -137,7 +153,7 @@ const ProfilePage = () => {
                     apellido: response.data.apellido || '',
                     year: response.data.year || 0,
                     telefono: response.data.telefono || '',
-                    habilidades: response.data.habilidades ? response.data.habilidades.map(h => h.id) : [],
+                    habilidades: response.data.habilidades ? response.data.habilidades.map(h => (typeof h === 'object' ? h.id : h)) : [],
                     email: response.data.email || '',
                     media: response.data.media || '',
                 };
@@ -147,7 +163,7 @@ const ProfilePage = () => {
                 return; // Ya hicimos la petición con FormData
             }
 
-            // Envío JSON cuando no hay fichero. Asegurarse de no enviar `media` si es una URL/string.
+            // Si no hay cambios en media -> JSON sin media string
             if (payload.media && typeof payload.media === 'string') {
                 delete payload.media;
             }
@@ -164,7 +180,7 @@ const ProfilePage = () => {
                 apellido: response.data.apellido || '',
                 year: response.data.year || 0,
                 telefono: response.data.telefono || '',
-                habilidades: response.data.habilidades ? response.data.habilidades.map(h => h.id) : [],
+                habilidades: response.data.habilidades ? response.data.habilidades.map(h => (typeof h === 'object' ? h.id : h)) : [],
                 email: response.data.email || '',
                 media: response.data.media || '',
             };
