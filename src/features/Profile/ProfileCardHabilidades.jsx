@@ -4,6 +4,7 @@ import {
     TextField, Autocomplete, Chip, Stack
 } from '@mui/material';
 import { useFormContext, Controller } from 'react-hook-form';
+import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
 
 // Asumimos que recibimos los datos de la API para el selector
 const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes }) => {
@@ -14,11 +15,8 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
     // contiene los IDs actuales del usuario para que el Autocomplete pueda preseleccionarlas.
     useEffect(() => {
         if (isEditing && profileData?.habilidades) {
-            // Detectar si habilidades es un array de objetos o un array de IDs
-            const ids = profileData.habilidades.map(h => 
-                (h && typeof h === 'object') ? h.id : h
-            );
-            setValue('habilidades', ids);
+            const formatted = formatProfileDataForForm(profileData);
+            setValue('habilidades', formatted.habilidades);
         }
     }, [isEditing, profileData, setValue]);
 
@@ -81,34 +79,17 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                 name="habilidades" // Campo de RHF que guardará un array de IDs [1, 5, 10]
                                 control={control}
                                 render={({ field }) => {
-                                    // Determinar los IDs actuales que representan la selección.
-                                    // Preferir field.value si no está vacío, sino usar profileData
-                                    let currentIdsRaw = [];
-                                    if (Array.isArray(field.value) && field.value.length > 0) {
-                                        currentIdsRaw = field.value;
-                                    } else if (profileData?.habilidades && profileData.habilidades.length > 0) {
-                                        // Detectar si habilidades es un array de objetos o un array de IDs
-                                        currentIdsRaw = profileData.habilidades.map(h => 
-                                            (h && typeof h === 'object') ? h.id : h
-                                        );
-                                    }
+                                    // Fuente de verdad: siempre usar field.value en edición
+                                    const currentIdsRaw = Array.isArray(field.value) ? field.value : [];
 
                                     // Deduplicar IDs manteniendo orden (evitar chips duplicados y keys no únicas)
                                     const uniqueIdStrings = Array.from(new Set(currentIdsRaw.map(id => String(id))));
 
                                     // Mapear esos IDs únicos a objetos completos para Autocomplete.
                                     const selectedOptions = uniqueIdStrings.map(idStr => {
-                                        // Buscar en allSkills primero (normal caso)
+                                        // Buscar en allSkills primero (caso normal)
                                         const fromAll = allSkills?.find(s => String(s.id) === idStr || s.id == idStr);
                                         if (fromAll) return fromAll;
-                                        // Si profileData.habilidades contiene objetos, buscar ahí
-                                        if (profileData?.habilidades && profileData.habilidades.length > 0) {
-                                            const firstItem = profileData.habilidades[0];
-                                            if (firstItem && typeof firstItem === 'object') {
-                                                const fromProfile = profileData.habilidades.find(h => String(h.id) === idStr || h.id == idStr);
-                                                if (fromProfile) return fromProfile;
-                                            }
-                                        }
                                         // Devolver objeto mínimo
                                         return { id: idStr, nombre_habilidad: `Habilidad ${idStr}` };
                                     });
@@ -158,10 +139,8 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                                                 key={idVal != null ? `skill-${idVal}` : `skill-${idx}`}
                                                                 label={label}
                                                                                 onDelete={() => {
-                                                                                    // Recalcular IDs actuales y eliminar el seleccionado (comparando como strings)
-                                                                                    const current = Array.isArray(field.value) && field.value.length > 0
-                                                                                        ? field.value
-                                                                                        : (profileData?.habilidades?.map(h => h.id) || []);
+                                                                                    // Eliminar usando únicamente el estado de RHF
+                                                                                    const current = Array.isArray(field.value) ? field.value : [];
                                                                                     const updatedIds = current.filter(id => String(id) !== String(idVal));
                                                                                     field.onChange(updatedIds);
                                                                                 }}
