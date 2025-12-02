@@ -1,9 +1,7 @@
 import axios from 'axios';
 
-const API_URL = 'https://api.omarmontanares.com/api/';
 // La variable de entorno VITE_API_URL es inyectada por Docker/Vite
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.omarmontanares.com/api/';
-// const BASE_URL = API_URL;
 
 const axiosInstance = axios.create({
     baseURL: BASE_URL,

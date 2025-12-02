@@ -180,59 +180,65 @@ const ProfilePage = () => {
                 1. USAR FormProvider: Esto da acceso a register, errors, etc., a todos los hijos.
                 2. USAR Formulario: Se usa el Box como formulario si está en modo Edición.
                 */}
-                <FormProvider {...methods}>
-                    <Box
-                        component={isEditing ? 'form' : 'div'}
-                        onSubmit={isEditing ? handleSubmit(onSubmit) : undefined}
-                    >
-                        <Grid container spacing={3}>
+                <Grid container direction="column" spacing={2} mb={2}>
+                    <FormProvider {...methods}>
+                        {/* Box que contiene datos personales y habilidades */}
+                        <Box
+                            component={isEditing ? 'form' : 'div'}
+                            onSubmit={isEditing ? handleSubmit(onSubmit) : undefined}
+                        >
+                            <Grid container spacing={2}>
 
-                            {/* TARJETA: INFORMACIÓN PERSONAL */}
-                            <Grid xs={12} md={6}>
-                                <ProfileCardPersonal
-                                    profileData={profileData}
-                                    isEditing={isEditing}
-                                />
-                            </Grid>
-
-                            {/* TARJETA: HABILIDADES Y EXPERIENCIA */}
-                            <Grid xs={12} md={6}>
-                                <ProfileCardHabilidades
-                                    profileData={profileData}
-                                    isEditing={isEditing}
-                                    allSkills={allSkills}
-                                    skillTypes={skillTypes}
-                                />
-                            </Grid>
-
-                            {/* TARJETA: RESEÑAS */}
-                            <Grid xs={12}>
-                                <ProfileCardReseñas />
-                            </Grid>
-
-                            {/* Botones de Guardar/Cancelar solo si está editando */}
-                            {isEditing && (
-                                <Grid xs={12}>
-                                    <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                                        <Button
-                                            type="submit"
-                                            variant="contained"
-                                            disabled={!isDirty || isSubmitting}
-                                        >
-                                            {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'CONFIRMAR CAMBIOS'}
-                                        </Button>
-                                        <Button
-                                            variant="outlined"
-                                            onClick={() => { reset(); setIsEditing(false); }}
-                                        >
-                                            Cancelar
-                                        </Button>
-                                    </Stack>
+                                {/* TARJETA: INFORMACIÓN PERSONAL */}
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <ProfileCardPersonal
+                                        profileData={profileData}
+                                        isEditing={isEditing}
+                                    />
                                 </Grid>
-                            )}
-                        </Grid>
-                    </Box>
-                </FormProvider>
+
+                                {/* TARJETA: HABILIDADES Y EXPERIENCIA */}
+                                <Grid size={{ xs: 12, sm: 6 }}>
+                                    <ProfileCardHabilidades
+                                        profileData={profileData}
+                                        isEditing={isEditing}
+                                        allSkills={allSkills}
+                                        skillTypes={skillTypes}
+                                    />
+                                </Grid>
+
+                                {/* Botones de Guardar/Cancelar solo si está editando */}
+                                {isEditing && (
+                                    <Grid xs={12}>
+                                        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                                            <Button
+                                                type="submit"
+                                                variant="contained"
+                                                disabled={!isDirty || isSubmitting}
+                                            >
+                                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'CONFIRMAR CAMBIOS'}
+                                            </Button>
+                                            <Button
+                                                variant="outlined"
+                                                onClick={() => { reset(); setIsEditing(false); }}
+                                            >
+                                                Cancelar
+                                            </Button>
+                                        </Stack>
+                                    </Grid>
+                                )}
+                            </Grid>
+                        </Box>
+                    </FormProvider>
+
+                    {/* TARJETA: RESEÑAS */}
+                    <Grid size={{ xs: 12 }}>
+                        <ProfileCardReseñas />
+                    </Grid>
+                </Grid>
+
+
+
             </Container>
         </Box>
     );

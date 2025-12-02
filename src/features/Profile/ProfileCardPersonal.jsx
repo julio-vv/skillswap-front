@@ -1,12 +1,12 @@
 import React from 'react';
-import { Card, CardContent, Typography, Box, Button, Grid, TextField, IconButton } from '@mui/material';
+import { Card, CardContent, Typography, Box, Button, Grid, TextField, IconButton, Stack } from '@mui/material';
 import { Edit as EditIcon, AccountCircle } from '@mui/icons-material';
 // Usamos useFormContext para acceder a RHF
 import { useFormContext } from 'react-hook-form';
 
 const ProfileCardPersonal = ({ profileData, isEditing }) => {
     // Obtener las funciones de RHF del FormProvider del componente padre
-    const { register, formState: { errors } } = useFormContext(); 
+    const { register, formState: { errors } } = useFormContext();
 
     // URL de la imagen de perfil (usa un fallback)
     const mediaUrl = profileData?.media || `https://via.placeholder.com/150?text=${profileData?.nombre?.charAt(0) || 'U'}`;
@@ -22,10 +22,10 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                         {/* Imagen de Perfil */}
                         <Box
                             sx={{
-                                width: 80, height: 80, borderRadius: '50%', 
+                                width: 80, height: 80, borderRadius: '50%',
                                 backgroundImage: `url(${mediaUrl})`,
                                 backgroundSize: 'cover', backgroundPosition: 'center',
-                                mr: 2, 
+                                mr: 2,
                                 border: '2px solid #ccc'
                             }}
                         >
@@ -56,7 +56,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
 
                     {/* MODO EDICIÓN */}
                     {isEditing && (
-                        <Grid container spacing={2} sx={{ mt: 1 }}>
+                        <Stack spacing={2}>
                             <Grid xs={12} sm={4}>
                                 <TextField fullWidth label="Nombre" {...register('nombre')} error={!!errors.nombre} helperText={errors.nombre?.message} />
                             </Grid>
@@ -77,7 +77,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                 <input type="file" accept="image/*" {...register('media')} />
                                 {errors.media && <Typography color="error" variant="caption">{errors.media.message}</Typography>}
                             </Grid>
-                        </Grid>
+                        </Stack>
                     )}
                 </Box>
             </CardContent>

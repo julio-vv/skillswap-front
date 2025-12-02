@@ -19,9 +19,9 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                             {profileData?.habilidades || 'Aún no has agregado tus habilidades.'}
                         </Typography>
 
-                        <Typography variant="body1" sx={{ mt: 2 }}>
+                        {/* <Typography variant="body1" sx={{ mt: 2 }}>
                             **Años de Estudio:** {profileData?.year || 'N/A'}
-                        </Typography>
+                        </Typography> */}
                     </Box>
                 )}
 
