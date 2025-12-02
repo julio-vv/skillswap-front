@@ -18,19 +18,23 @@ export const AuthProvider = ({ children }) => {
     // ESTADO PARA ALMACENAR LOS DATOS DEL USUARIO (incluyendo el ID)
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true); // Para evitar parpadeo en la carga inicial
 
     useEffect(() => {
         const token = localStorage.getItem('skillswap_token');
         const storedUser = getStoredUser(); // Intenta cargar el objeto de usuario
 
-        // LÓGICA DE useEffect 
-        if (token && storedUser) {
+        // Si hay token y usuario, asumimos que está autenticado
+        // El interceptor de axios se encargará de limpiar si el token es inválido
+        if (token) {
             setIsAuthenticated(true);
-            setUser(storedUser); // Establece los datos del usuario al cargar la app
+            setUser(storedUser); // Establece los datos del usuario (puede ser null si no se guardó)
         } else {
             setIsAuthenticated(false);
             setUser(null);
         }
+        
+        setIsLoading(false); // Terminó de verificar
     }, []);
 
     // FUNCIÓN login para recibir y almacenar los datos del usuario
@@ -58,10 +62,10 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    // VALOR DEL CONTEXTO: EXPONER 'user'
+    // VALOR DEL CONTEXTO: EXPONER 'user' e 'isLoading'
     return (
-        <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
-            {children}
+        <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
+            {!isLoading && children}
         </AuthContext.Provider>
     );
 };

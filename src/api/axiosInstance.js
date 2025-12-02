@@ -25,4 +25,23 @@ axiosInstance.interceptors.request.use(
     }
 );
 
+// Interceptor para manejar respuestas y errores (especialmente 401 Unauthorized)
+axiosInstance.interceptors.response.use(
+    (response) => {
+        // Si la respuesta es exitosa, simplemente la devolvemos
+        return response;
+    },
+    (error) => {
+        // Si recibimos un 401 (token inválido o expirado), limpiamos la sesión
+        if (error.response && error.response.status === 401) {
+            console.warn('Token inválido o expirado. Cerrando sesión...');
+            localStorage.removeItem('skillswap_token');
+            localStorage.removeItem('skillswap_user');
+            // Redirigir al login
+            window.location.href = '/login';
+        }
+        return Promise.reject(error);
+    }
+);
+
 export default axiosInstance;

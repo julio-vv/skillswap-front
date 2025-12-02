@@ -10,7 +10,15 @@ import ProfilePage from './features/Profile/ProfilePage';
 
 // Componente Wrapper para rutas protegidas
 const ProtectedRoute = ({ element }) => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
+    
+    // Mientras verifica la autenticación, no redirigir (evita parpadeo)
+    if (isLoading) {
+        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+            Cargando...
+        </div>;
+    }
+    
     // Si no está autenticado, lo redirige a la página de login
     return isAuthenticated ? element : <Navigate to="/login" />;
 };
