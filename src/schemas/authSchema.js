@@ -1,25 +1,50 @@
 import { z } from 'zod';
 
+// Constantes para validación
+const MAX_NAME_LENGTH = 50;
+const MIN_PASSWORD_LENGTH = 8;
+const MAX_PASSWORD_LENGTH = 128;
+
 // Zod Schema para el Registro
 export const registerSchema = z.object({
-    // Campos requeridos por la API.pdf: email, password, password2, nombre, apellido
-    
-    email: z.string().email({ message: "El email debe ser un formato válido." }),
-    
+    email: z.string()
+        .min(1, "El email es obligatorio.")
+        .email("El email debe ser un formato válido."),
+
     password1: z.string()
-        .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
-        .max(128, { message: "La contraseña no debe exceder los 128 caracteres." }), // DRF default max length
-        
-    password2: z.string(), // Necesario para la comparación
-    
-    nombre: z.string().min(1, { message: "El nombre es obligatorio." }),
-    
-    // El segundo nombre es opcional en la API, por lo que lo hacemos opcional en Zod
-    segundo_nombre: z.string().optional().or(z.literal('')),
-    
-    apellido: z.string().min(1, { message: "El apellido es obligatorio." }),
+        .min(MIN_PASSWORD_LENGTH, `La contraseña debe tener al menos ${MIN_PASSWORD_LENGTH} caracteres.`)
+        .max(MAX_PASSWORD_LENGTH, `La contraseña no debe exceder los ${MAX_PASSWORD_LENGTH} caracteres.`)
+        .regex(/[A-Z]/, "La contraseña debe contener al menos una mayúscula.")
+        .regex(/[a-z]/, "La contraseña debe contener al menos una minúscula.")
+        .regex(/[0-9]/, "La contraseña debe contener al menos un número."),
+
+    password2: z.string()
+        .min(1, "Confirma tu contraseña."),
+
+    nombre: z.string()
+        .min(1, "El nombre es obligatorio.")
+        .max(MAX_NAME_LENGTH, "El nombre es demasiado largo."),
+
+    segundo_nombre: z.string()
+        .max(MAX_NAME_LENGTH, "El segundo nombre es demasiado largo.")
+        .optional()
+        .or(z.literal('')),
+
+    apellido: z.string()
+        .min(1, "El apellido es obligatorio.")
+        .max(MAX_NAME_LENGTH, "El apellido es demasiado largo."),
 
 }).refine((data) => data.password1 === data.password2, {
     message: "Las contraseñas no coinciden.",
-    path: ["password2"], // Asigna el error al campo password2
+    path: ["password2"],
+});
+
+// Zod Schema para el Login
+export const loginSchema = z.object({
+    email: z.string()
+        .min(1, "El email es obligatorio.")
+        .email("El email debe ser un formato válido."),
+
+    password: z.string()
+        .min(1, "La contraseña es obligatoria."),
 });

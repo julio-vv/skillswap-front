@@ -20,7 +20,7 @@ const LoginPage = () => {
         setError('');
         
         try {
-            // Llama al endpoint POST /auth/login/
+            // Llamar al endpoint POST /auth/login/
             const response = await axiosPublic.post('auth/login/', {
                 email: data.email,
                 password: data.password,
@@ -29,29 +29,31 @@ const LoginPage = () => {
             // La API devuelve { "key": "<token>" }
             const token = response.data.key;
             
-            // 1. Guardar el token para futuras peticiones (usamos localStorage)
-            localStorage.setItem('skillswap_token', token);
-            login(token);
+            // El login ahora obtiene automáticamente los datos del usuario
+            await login(token);
 
-            // 2. Redirigir al usuario (ej: a la página de perfil)
+            // Redirigir al usuario
             navigate('/home'); 
             
         } catch (err) {
-            // Manejo de errores (ej: credenciales inválidas)
             setLoading(false);
-            if (err.response && err.response.data) {
+            
+            // Manejo de errores mejorado
+            if (err.response?.data) {
                 const apiErrors = err.response.data;
                 if (apiErrors.non_field_errors) {
-                    setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
+                    setError("Credenciales inválidas. Verifica tu email y contraseña.");
                 } else if (apiErrors.email) {
                     setError(`Email: ${apiErrors.email[0]}`);
                 } else if (apiErrors.password) {
                     setError(`Contraseña: ${apiErrors.password[0]}`);
+                } else if (apiErrors.detail) {
+                    setError(apiErrors.detail);
                 } else {
-                    setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.");
+                    setError("Error al iniciar sesión. Intenta nuevamente.");
                 }
             } else {
-                setError("Error de red o servidor. Verifica tu conexión.");
+                setError("Error de red. Verifica tu conexión a internet.");
             }
         }
     };

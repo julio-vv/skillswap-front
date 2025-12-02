@@ -1,31 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Typography, Box, Button, TextField, Alert, Stack, CircularProgress, Card, CardContent, Grid, MenuItem } from '@mui/material';
-import { Edit as EditIcon } from '@mui/icons-material';
+import { Container, Box, Alert, Grid } from '@mui/material';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useParams } from 'react-router-dom';
-import axiosInstance from '../../api/axiosInstance';
 import { profileSchema } from '../../schemas/profileSchema';
-import { useAuth } from '../Auth/AuthContext'; // Para la función de Logout
+import { useAuth } from '../Auth/AuthContext';
+import { useProfileData } from '../../hooks/useProfileData';
+import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
 
-import ProfileCardPersonal from './ProfileCardPersonal';
-import ProfileCardHabilidades from './ProfileCardHabilidades';
+import ProfileHeader from './components/ProfileHeader';
+import ProfileLoading from './components/ProfileLoading';
+import ProfileError from './components/ProfileError';
+import ProfileView from './components/ProfileView';
+import ProfileForm from './components/ProfileForm';
 import ProfileCardReseñas from './ProfileCardReseñas';
 
 const ProfilePage = () => {
-    const { id: urlUserId } = useParams(); // Obtener ID de la URL si existe
-    const { logout, user } = useAuth(); // Para cerrar sesión. `user` contiene el id si tu API requiere `usuarios/{id}/`
-    const [isLoading, setIsLoading] = useState(true);
-    const [serverError, setServerError] = useState('');
+    const { id: urlUserId } = useParams();
+    const { logout, user } = useAuth();
     const [isEditing, setIsEditing] = useState(false);
-    const [profileData, setProfileData] = useState(null); //<- Estado para almacenar los datos del perfil
-    const [allSkills, setAllSkills] = useState([]); // Para habilidades completas
-    const [skillTypes, setSkillTypes] = useState([]); // Para Tipos de Habilidad
     
-    // Determinar si estamos viendo nuestro propio perfil o el de otro usuario
+    // Usar el hook personalizado para manejar datos de perfil
+    const {
+        profileData,
+        isLoading,
+        error: profileError,
+        allSkills,
+        skillTypes,
+        updateProfile,
+        clearError,
+    } = useProfileData(urlUserId);
+
+    // Determinar si estamos viendo nuestro propio perfil
     const isOwnProfile = !urlUserId || (user && String(user.id) === String(urlUserId));
 
-    // Configurar React Hook Form con el esquema de Perfil
+    // Configurar React Hook Form
     const methods = useForm({
         resolver: zodResolver(profileSchema),
         defaultValues: {
@@ -34,282 +43,87 @@ const ProfilePage = () => {
         }
     });
 
-
     const {
-        handleSubmit,
         reset,
         formState: { isDirty, isSubmitting }
     } = methods;
 
-    // 1. OBTENCIÓN DE DATOS (GET /auth/user/ o /usuarios/:id/)
-    const fetchUserProfile = async () => {
-        setIsLoading(true);
-        setServerError('');
-        try {
-            // Si hay ID en la URL, obtener ese perfil; si no, obtener el propio
-            const endpoint = urlUserId ? `usuarios/${urlUserId}/` : 'auth/user/';
-            const response = await axiosInstance.get(endpoint);
-            const userData = response.data;
-
-            setProfileData(userData); // Guardar los datos del perfil en el estado
-
-            // Mapeo y ajuste de datos para el formulario
-            const defaultValues = {
-                nombre: userData.nombre || '',
-                segundo_nombre: userData.segundo_nombre || '',
-                apellido: userData.apellido || '',
-                year: userData.year || 0, // Asegura que sea 0 si es nulo
-                telefono: userData.telefono || '',
-                habilidades: userData.habilidades ? userData.habilidades.map(h => h.id) : [], // Mapea a un array de IDs o queda vacío
-                email: userData.email, // Solo lectura
-                media: userData.media,
-            };
-
-            // Carga los datos obtenidos de la API en el formulario
-            reset(defaultValues);
-
-        } catch (error) {
-            setServerError('Error al cargar el perfil. Intenta de nuevo.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    // Cargar datos de habilidades y tipos de habilidad
-    const fetchSkillData = async () => {
-        try {
-            const [skillsResponse, typesResponse] = await Promise.all([
-                axiosInstance.get('habilidades/'),
-                axiosInstance.get('tipos-habilidad/')
-            ]);
-
-            setAllSkills(skillsResponse.data);
-            setSkillTypes(typesResponse.data);
-
-        } catch (error) {
-            console.error("Error al cargar datos de habilidades:", error);
-            // Mostrar error al usuario
-        }
-    };
-
+    // Cargar datos del perfil en el formulario cuando estén disponibles
     useEffect(() => {
-        fetchUserProfile();
-        fetchSkillData();
-    }, [urlUserId]); // Re-cargar si cambia el ID en la URL
+        if (profileData) {
+            reset(formatProfileDataForForm(profileData));
+        }
+    }, [profileData, reset]);
 
-    // 2. ENVÍO DE DATOS (PATCH /auth/user/)
+    // Manejar envío del formulario
     const onSubmit = async (data) => {
-        // `data.habilidades` ya es un array de IDs gracias al Controller
-        const payload = { ...data };
+        clearError();
 
-        try {
-            // Determinar si hay archivo nuevo
-            const mediaIsFile = payload.media && (typeof File !== 'undefined') && (
-                payload.media instanceof File || payload.media instanceof FileList
-            );
+        // Determinar si hay un archivo nuevo
+        const hasFile = data.media && (
+            data.media instanceof File || 
+            (data.media instanceof FileList && data.media.length > 0)
+        );
 
-            // Si hay archivo nuevo -> usar FormData
-            if (mediaIsFile) {
-                const formData = new FormData();
+        const updatedData = await updateProfile(data, hasFile);
 
-                Object.keys(payload).forEach(key => {
-                    if (key === 'habilidades') {
-                        // Enviar múltiples entradas con la misma clave es compatible con DRF
-                        payload[key].forEach(id => formData.append('habilidades', id));
-                    } else if (key === 'media') {
-                        // Agregar el archivo solo si es un File
-                        const file = payload.media instanceof FileList ? payload.media[0] : payload.media;
-                        if (file instanceof File) {
-                            formData.append('media', file);
-                        }
-                        // Si no es File, no agregar nada
-                    } else if (payload[key] !== null && payload[key] !== undefined && payload[key] !== '') {
-                        formData.append(key, payload[key]);
-                    }
-                });
-
-                // // DEBUG dentro de onSubmit: verificar qué se envía
-                // try {
-                //     console.log('=== DEBUG FormData (onSubmit) ===');
-                //     console.log('mediaIsFile:', mediaIsFile);
-                //     console.log('payload.media type:', typeof payload.media, payload.media);
-                //     for (let pair of formData.entries()) {
-                //         console.log(pair[0] + ':', pair[1]);
-                //     }
-                //     console.log('=================================');
-                // } catch {}
-
-                // Determinar endpoint: preferimos `usuarios/{id}/` si tenemos el id
-                // (puede venir del contexto `user` o de `profileData` cargada previamente).
-                const idForEndpoint = user?.id ?? profileData?.id;
-                const endpoint = idForEndpoint ? `usuarios/${idForEndpoint}/` : 'usuarios/me/';
-                const response = await axiosInstance.patch(endpoint, formData);
-
-                setProfileData(response.data);
-                const resetValues = {
-                    nombre: response.data.nombre || '',
-                    segundo_nombre: response.data.segundo_nombre || '',
-                    apellido: response.data.apellido || '',
-                    year: response.data.year || 0,
-                    telefono: response.data.telefono || '',
-                    habilidades: response.data.habilidades ? response.data.habilidades.map(h => (typeof h === 'object' ? h.id : h)) : [],
-                    email: response.data.email || '',
-                    media: response.data.media || '',
-                };
-
-                methods.reset(resetValues);
-                setIsEditing(false);
-                return; // Ya hicimos la petición con FormData
-            }
-
-            // Si no hay cambios en media -> JSON sin media string
-            if (payload.media && typeof payload.media === 'string') {
-                delete payload.media;
-            }
-
-            const idForEndpoint = user?.id ?? profileData?.id;
-            const endpoint = idForEndpoint ? `usuarios/${idForEndpoint}/` : 'usuarios/me/';
-            const response = await axiosInstance.patch(endpoint, payload);
-
-            setProfileData(response.data);
-
-            const resetValues = {
-                nombre: response.data.nombre || '',
-                segundo_nombre: response.data.segundo_nombre || '',
-                apellido: response.data.apellido || '',
-                year: response.data.year || 0,
-                telefono: response.data.telefono || '',
-                habilidades: response.data.habilidades ? response.data.habilidades.map(h => (typeof h === 'object' ? h.id : h)) : [],
-                email: response.data.email || '',
-                media: response.data.media || '',
-            };
-
-            methods.reset(resetValues);
+        if (updatedData) {
+            reset(formatProfileDataForForm(updatedData));
             setIsEditing(false);
-
-        } catch (error) {
-            // Mostrar información detallada del error si la API la proporciona
-            console.error('Error al guardar perfil:', error);
-            if (error.response && error.response.data) {
-                console.error('Detalles del servidor:', error.response.data);
-                // Mostrar mensaje específico si viene del servidor
-                const serverMsg = typeof error.response.data === 'string' ? error.response.data : (error.response.data.detail || JSON.stringify(error.response.data));
-                setServerError(`Error al guardar el perfil: ${serverMsg}`);
-            } else {
-                setServerError('Error al guardar el perfil. Intenta de nuevo.');
-            }
         }
     };
 
-    // 3. Renderizado
+    // Renderizado condicional basado en el estado de carga
     if (isLoading) {
-        return (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-                <CircularProgress />
-            </Box>
-        );
+        return <ProfileLoading />;
     }
 
-    // Si no esta cargado y no hay datos, algo falló
+    // Si no hay datos después de cargar, mostrar error
     if (!profileData) {
-        return (
-            <Container maxWidth="sm" sx={{ mt: 4 }}>
-                {serverError ? (
-                    <Alert severity="error">{serverError}</Alert>
-                ) : (
-                    <Alert severity="warning">No se pudo cargar el perfil.</Alert>
-                )}
-                <Button onClick={logout} sx={{ mt: 2 }}>Volver a Iniciar Sesión</Button>
-            </Container>
-        );
+        return <ProfileError error={profileError} onLogout={logout} />;
     }
 
 
     return (
         <Box>
             <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
-                {/* 1. Título y Botón "Editar" */}
-                <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
-                    <Typography variant="h4" component="h1">
-                        {isOwnProfile ? 'Mi Perfil' : 'Perfil de Usuario'}
-                    </Typography>
-                    {/* El botón de editar solo aparece si es nuestro perfil y NO estamos editando */}
-                    {isOwnProfile && !isEditing && (
-                        <Button
-                            variant="outlined"
-                            startIcon={<EditIcon />}
-                            onClick={() => setIsEditing(true)}
-                        >
-                            Editar
-                        </Button>
-                    )}
-                </Box>
+                <ProfileHeader 
+                    isOwnProfile={isOwnProfile}
+                    isEditing={isEditing}
+                    onEdit={() => setIsEditing(true)}
+                />
 
-                {serverError && <Alert severity="error" sx={{ mb: 2 }}>{serverError}</Alert>}
+                {profileError && <Alert severity="error" sx={{ mb: 2 }}>{profileError}</Alert>}
 
-                {/*
-                1. USAR FormProvider: Esto da acceso a register, errors, etc., a todos los hijos.
-                2. USAR Formulario: Se usa el Box como formulario si está en modo Edición.
-                */}
                 <Grid container direction="column" spacing={2} mb={2}>
                     <FormProvider {...methods}>
-                        {/* Box que contiene datos personales y habilidades */}
                         <Box
                             component={isEditing ? 'form' : 'div'}
                             onSubmit={isEditing ? methods.handleSubmit(onSubmit) : undefined}
                         >
-                            <Grid container spacing={2}>
-
-                                {/* TARJETA: INFORMACIÓN PERSONAL */}
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <ProfileCardPersonal
-                                        profileData={profileData}
-                                        isEditing={isOwnProfile && isEditing}
-                                    />
-                                </Grid>
-
-                                {/* TARJETA: HABILIDADES Y EXPERIENCIA */}
-                                <Grid size={{ xs: 12, sm: 6 }}>
-                                    <ProfileCardHabilidades
-                                        profileData={profileData}
-                                        isEditing={isOwnProfile && isEditing}
-                                        allSkills={allSkills}
-                                        skillTypes={skillTypes}
-                                    />
-                                </Grid>
-
-                                {/* Botones de Guardar/Cancelar solo si es nuestro perfil y está editando */}
-                                {isOwnProfile && isEditing && (
-                                    <Grid xs={12}>
-                                        <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
-                                            <Button
-                                                type="submit"
-                                                variant="contained"
-                                                disabled={!isDirty || isSubmitting}
-                                            >
-                                                {isSubmitting ? <CircularProgress size={24} color="inherit" /> : 'CONFIRMAR CAMBIOS'}
-                                            </Button>
-                                            <Button
-                                                variant="outlined"
-                                                onClick={() => { reset(); setIsEditing(false); }}
-                                            >
-                                                Cancelar
-                                            </Button>
-                                        </Stack>
-                                    </Grid>
-                                )}
-                            </Grid>
+                            {isOwnProfile && isEditing ? (
+                                <ProfileForm
+                                    profileData={profileData}
+                                    allSkills={allSkills}
+                                    skillTypes={skillTypes}
+                                    isDirty={isDirty}
+                                    isSubmitting={isSubmitting}
+                                    onCancel={() => { reset(); setIsEditing(false); }}
+                                />
+                            ) : (
+                                <ProfileView
+                                    profileData={profileData}
+                                    allSkills={allSkills}
+                                    skillTypes={skillTypes}
+                                />
+                            )}
                         </Box>
                     </FormProvider>
 
-                    {/* TARJETA: RESEÑAS */}
                     <Grid size={{ xs: 12 }}>
                         <ProfileCardReseñas />
                     </Grid>
                 </Grid>
-
-
-
             </Container>
         </Box>
     );

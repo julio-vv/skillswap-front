@@ -77,7 +77,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                     {/* MODO LECTURA */}
                     {!isEditing && (
                         <Grid container spacing={2} sx={{ mt: 1 }}>
-                            <Grid xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <Typography variant="body1">**Teléfono:** {profileData?.telefono || 'N/A'}</Typography>
                             </Grid>
                         </Grid>
@@ -85,23 +85,23 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
 
                     {/* MODO EDICIÓN */}
                     {isEditing && (
-                        <Stack spacing={2}>
-                            <Grid xs={12} sm={4}>
+                        <Grid container spacing={2}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField fullWidth label="Nombre" {...register('nombre')} error={!!errors.nombre} helperText={errors.nombre?.message} />
                             </Grid>
-                            <Grid xs={12} sm={4}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField fullWidth label="Segundo Nombre" {...register('segundo_nombre')} error={!!errors.segundo_nombre} helperText={errors.segundo_nombre?.message} />
                             </Grid>
-                            <Grid xs={12} sm={4}>
+                            <Grid size={{ xs: 12, sm: 4 }}>
                                 <TextField fullWidth label="Apellido" {...register('apellido')} error={!!errors.apellido} helperText={errors.apellido?.message} />
                             </Grid>
-                            <Grid xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField fullWidth label="Teléfono" {...register('telefono')} error={!!errors.telefono} helperText={errors.telefono?.message} />
                             </Grid>
-                            <Grid xs={12} sm={6}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField fullWidth label="Email (Solo Lectura)" value={profileData?.email || ''} InputProps={{ readOnly: true }} />
                             </Grid>
-                            <Grid xs={12}>
+                            <Grid size={{ xs: 12 }}>
                                 <Typography variant="subtitle2" sx={{ mb: 1 }}>Foto de Perfil</Typography>
                                 <Stack direction="row" spacing={1} alignItems="center">
                                     <Button
@@ -130,7 +130,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                 </Stack>
                                 {errors.media && <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>{errors.media.message}</Typography>}
                             </Grid>
-                        </Stack>
+                        </Grid>
                     )}
                 </Box>
             </CardContent>

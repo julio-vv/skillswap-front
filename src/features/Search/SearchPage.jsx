@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import {
     Container, Typography, Box, TextField, InputAdornment,
     Card, CardContent, Avatar, Stack, Chip, CircularProgress,
@@ -6,88 +6,26 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon, PersonAdd } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import axiosInstance from '../../api/axiosInstance';
+import { useSearch } from '../../hooks/useSearch';
 
 const SearchPage = () => {
     const navigate = useNavigate();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [searchResults, setSearchResults] = useState([]);
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
-    const [hasSearched, setHasSearched] = useState(false);
-    
-    // Estados para paginación
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
-    const [pageSize, setPageSize] = useState(10);
-    const [nextUrl, setNextUrl] = useState(null);
-    const [prevUrl, setPrevUrl] = useState(null);
 
-    // Debounce: ejecutar búsqueda después de 500ms sin escribir
-    useEffect(() => {
-        if (searchQuery.trim().length < 2) {
-            setSearchResults([]);
-            setHasSearched(false);
-            setCurrentPage(1);
-            setTotalCount(0);
-            return;
-        }
+    const {
+        searchQuery,
+        setSearchQuery,
+        searchResults,
+        isLoading,
+        error,
+        hasSearched,
+        currentPage,
+        totalCount,
+        totalPages,
+        handlePageChange,
+    } = useSearch();
 
-        const delayDebounce = setTimeout(() => {
-            setCurrentPage(1); // Reiniciar a página 1 en nueva búsqueda
-            performSearch(searchQuery, 1);
-        }, 500);
-
-        return () => clearTimeout(delayDebounce);
-    }, [searchQuery]);
-
-    const performSearch = async (query, page = 1) => {
-        if (!query.trim()) return;
-
-        setIsLoading(true);
-        setError('');
-        setHasSearched(true);
-
-        try {
-            const response = await axiosInstance.get(
-                `usuarios/buscar/?q=${encodeURIComponent(query)}&page=${page}`
-            );
-            
-            // Manejar respuesta paginada o lista directa
-            if (response.data.results) {
-                // Respuesta paginada
-                setSearchResults(response.data.results);
-                setTotalCount(response.data.count || 0);
-                setNextUrl(response.data.next);
-                setPrevUrl(response.data.previous);
-                
-                // Calcular pageSize desde la respuesta si es posible
-                if (response.data.results.length > 0) {
-                    setPageSize(response.data.results.length);
-                }
-            } else {
-                // Lista directa (sin paginación)
-                setSearchResults(Array.isArray(response.data) ? response.data : []);
-                setTotalCount(Array.isArray(response.data) ? response.data.length : 0);
-            }
-        } catch (err) {
-            console.error('Error en búsqueda:', err);
-            if (err.response?.status === 401) {
-                setError('Sesión expirada. Por favor, inicia sesión nuevamente.');
-            } else {
-                setError('Error al realizar la búsqueda. Intenta de nuevo.');
-            }
-            setSearchResults([]);
-            setTotalCount(0);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handlePageChange = (event, page) => {
-        setCurrentPage(page);
-        performSearch(searchQuery, page);
-        // Scroll al inicio de los resultados
+    const onPageChange = (event, page) => {
+        handlePageChange(page);
         window.scrollTo({ top: 300, behavior: 'smooth' });
     };
 
@@ -180,7 +118,7 @@ const SearchPage = () => {
                             <CardContent>
                                 <Grid container spacing={2} alignItems="center">
                                     {/* Avatar */}
-                                    <Grid item>
+                                    <Grid>
                                         <Avatar 
                                             src={user.media} 
                                             alt={user.nombre}
@@ -191,7 +129,7 @@ const SearchPage = () => {
                                     </Grid>
 
                                     {/* Información del usuario */}
-                                    <Grid item xs>
+                                    <Grid sx={{ flex: 1 }}>
                                         <Typography variant="h6">
                                             {user.nombre} {user.segundo_nombre} {user.apellido}
                                         </Typography>
@@ -226,7 +164,7 @@ const SearchPage = () => {
                                     </Grid>
 
                                     {/* Botón de acción */}
-                                    <Grid item>
+                                    <Grid>
                                         <IconButton 
                                             color="primary"
                                             onClick={(e) => {
@@ -244,12 +182,12 @@ const SearchPage = () => {
                 </Stack>
 
                 {/* Paginación */}
-                {hasSearched && !isLoading && searchResults.length > 0 && totalCount > pageSize && (
+                {hasSearched && !isLoading && searchResults.length > 0 && totalPages > 1 && (
                     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
                         <Pagination 
-                            count={Math.ceil(totalCount / pageSize)}
+                            count={totalPages}
                             page={currentPage}
-                            onChange={handlePageChange}
+                            onChange={onPageChange}
                             color="primary"
                             size="large"
                             showFirstButton

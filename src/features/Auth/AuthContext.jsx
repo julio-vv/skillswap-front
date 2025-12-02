@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axiosInstance from '../../api/axiosInstance';
 
 const AuthContext = createContext(null);
 
@@ -37,20 +38,24 @@ export const AuthProvider = ({ children }) => {
         setIsLoading(false); // Terminó de verificar
     }, []);
 
-    // FUNCIÓN login para recibir y almacenar los datos del usuario
-    // Asume que 'userData' es el objeto que incluye el 'id' y demás campos del perfil.
-    const login = (token, userData) => {
+    // FUNCIÓN login mejorada: obtiene automáticamente los datos del usuario
+    const login = async (token) => {
         localStorage.setItem('skillswap_token', token);
-        if (userData) {
-            localStorage.setItem('skillswap_user', JSON.stringify(userData)); // Guarda el objeto de usuario en localStorage
-            setUser(userData); // Actualiza el estado
-        } else {
-            // Evitar almacenar "undefined" como string
-            localStorage.removeItem('skillswap_user');
-            setUser(null);
-        }
-
         setIsAuthenticated(true);
+
+        try {
+            // Obtener datos del usuario inmediatamente después del login
+            const response = await axiosInstance.get('auth/user/');
+            const userData = response.data;
+            localStorage.setItem('skillswap_user', JSON.stringify(userData));
+            setUser(userData);
+        } catch (error) {
+            console.error('Error al obtener datos del usuario:', error);
+            // Mantener autenticación pero sin datos de usuario
+            // El usuario puede cargarlos más tarde en su perfil
+            setUser(null);
+            localStorage.removeItem('skillswap_user');
+        }
     };
 
     // FUNCIÓN logout para limpiar los datos del usuario
