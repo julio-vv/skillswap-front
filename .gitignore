@@ -12,11 +12,18 @@ dist
 dist-ssr
 *.local
 
+# Build caches / tool caches
+.cache/
+.parcel-cache/
+eslintcache
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+.vscode/settings.json
 .idea
 .DS_Store
+Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
@@ -24,9 +31,24 @@ dist-ssr
 *.sw?
 .github/*
 
-# Lazygit
+# Binaries
 *.exe
+*.zip
+
+# Coverage / Testing artifacts
+coverage/
+.nyc_output/
+cypress/screenshots/
+cypress/videos/
+playwright-report/
+test-results/
+
+# Env files (mantén solo plantillas)
+.env
+.env.*
+!.env.example
 
 # Docker
 docker-compose.yml
 Dockerfile
+.dockerignore
