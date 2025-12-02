@@ -20,7 +20,7 @@ export const profileSchema = z.object({
     year: z.number().min(0, "El año no puede ser negativo."),
 
     // Campo de Habilidades (asumiendo que es una cadena de texto para el formulario)
-    habilidades: z.string().optional(),
+    habilidades: z.array(z.number().int()).optional(),
 
     // Campos solo para lectura que aún deben inicializarse en el formulario (ej. para el reset)
     email: z.string().email().optional(),

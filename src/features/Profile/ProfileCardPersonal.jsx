@@ -8,8 +8,8 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
     // Obtener las funciones de RHF del FormProvider del componente padre
     const { register, formState: { errors } } = useFormContext();
 
-    // URL de la imagen de perfil (usa un fallback)
-    const mediaUrl = profileData?.media || `https://via.placeholder.com/150?text=${profileData?.nombre?.charAt(0) || 'U'}`;
+    const fallbackText = encodeURIComponent(profileData?.nombre?.charAt(0) || 'U');
+    const mediaUrl = profileData?.media || `https://via.placeholder.com/150?text=${fallbackText}`;
 
     return (
         <Card sx={{ width: '100%' }}>

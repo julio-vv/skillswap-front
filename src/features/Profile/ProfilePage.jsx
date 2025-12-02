@@ -13,7 +13,7 @@ import ProfileCardHabilidades from './ProfileCardHabilidades';
 import ProfileCardReseñas from './ProfileCardReseñas';
 
 const ProfilePage = () => {
-    const { logout } = useAuth(); // Para cerrar sesión
+    const { logout, user } = useAuth(); // Para cerrar sesión. `user` contiene el id si tu API requiere `usuarios/{id}/`
     const [isLoading, setIsLoading] = useState(true);
     const [serverError, setServerError] = useState('');
     const [isEditing, setIsEditing] = useState(false);
@@ -26,7 +26,7 @@ const ProfilePage = () => {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             nombre: '', segundo_nombre: '', apellido: '',
-            year: 0, telefono: '', habilidades: '', email: '', media: ''
+            year: 0, telefono: '', habilidades: [], email: '', media: ''
         }
     });
 
@@ -53,7 +53,7 @@ const ProfilePage = () => {
                 apellido: userData.apellido || '',
                 year: userData.year || 0, // Asegura que sea 0 si es nulo
                 telefono: userData.telefono || '',
-                habilidades: userData.habilidades.map(h => h.id || h) || [], // Mapea a un array de IDs o queda vacío
+                habilidades: userData.habilidades ? userData.habilidades.map(h => h.id) : [], // Mapea a un array de IDs o queda vacío
                 email: userData.email, // Solo lectura
                 media: userData.media,
             };
@@ -92,40 +92,90 @@ const ProfilePage = () => {
 
     // 2. ENVÍO DE DATOS (PATCH /auth/user/)
     const onSubmit = async (data) => {
-        setServerError('');
-
-        // Crear un objeto FormData ya que la API puede esperar un archivo (media)
-        const formData = new FormData();
-
-        // Agregar solo los campos modificados o requeridos por el esquema
-        formData.append('nombre', data.nombre);
-        formData.append('apellido', data.apellido);
-        formData.append('segundo_nombre', data.segundo_nombre || '');
-
-        // Convertir el string de ID de carrera de vuelta a número para la API, o enviar null
-        const carreraId = data.carrera === '' ? null : Number(data.carrera);
-        formData.append('carrera', carreraId);
-
-        formData.append('year', data.year || 0); // Asume 0 si es null, si la API lo requiere
-
-        // Manejo de la foto de perfil (si se selecciona un archivo)
-        // Nota: Si usas <input type="file" />, su valor estará en data.media[0]
-        // if (data.media && data.media[0]) {
-        //     formData.append('media', data.media[0]); 
-        // }
+        // `data.habilidades` ya es un array de IDs gracias al Controller
+        const payload = { ...data };
 
         try {
-            await axiosInstance.patch('auth/user/', formData, {
-                // Header obligatorio si se envía un archivo
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            // Si hay una nueva imagen (un File o FileList), enviamos como FormData (multipart/form-data)
+            const mediaIsFile = payload.media && (typeof File !== 'undefined') && (
+                payload.media instanceof File || payload.media instanceof FileList
+            );
 
-            // Recargar los datos para ver la actualización
-            fetchUserProfile();
+            if (mediaIsFile) {
+                const formData = new FormData();
+
+                Object.keys(payload).forEach(key => {
+                    if (key === 'habilidades') {
+                        // Enviar múltiples entradas con la misma clave es compatible con DRF
+                        payload[key].forEach(id => formData.append('habilidades', id));
+                    } else if (key === 'media') {
+                        // `media` puede ser FileList o File
+                        const file = payload.media instanceof FileList ? payload.media[0] : payload.media;
+                        if (file) formData.append('media', file);
+                    } else {
+                        formData.append(key, payload[key]);
+                    }
+                });
+
+                // Determinar endpoint: preferimos `usuarios/{id}/` si tenemos el id
+                // (puede venir del contexto `user` o de `profileData` cargada previamente).
+                const idForEndpoint = user?.id ?? profileData?.id;
+                const endpoint = idForEndpoint ? `usuarios/${idForEndpoint}/` : 'usuarios/me/';
+                const response = await axiosInstance.patch(endpoint, formData);
+
+                setProfileData(response.data);
+                const resetValues = {
+                    nombre: response.data.nombre || '',
+                    segundo_nombre: response.data.segundo_nombre || '',
+                    apellido: response.data.apellido || '',
+                    year: response.data.year || 0,
+                    telefono: response.data.telefono || '',
+                    habilidades: response.data.habilidades ? response.data.habilidades.map(h => h.id) : [],
+                    email: response.data.email || '',
+                    media: response.data.media || '',
+                };
+
+                methods.reset(resetValues);
+                setIsEditing(false);
+                return; // Ya hicimos la petición con FormData
+            }
+
+            // Envío JSON cuando no hay fichero. Asegurarse de no enviar `media` si es una URL/string.
+            if (payload.media && typeof payload.media === 'string') {
+                delete payload.media;
+            }
+
+            const idForEndpoint = user?.id ?? profileData?.id;
+            const endpoint = idForEndpoint ? `usuarios/${idForEndpoint}/` : 'usuarios/me/';
+            const response = await axiosInstance.patch(endpoint, payload);
+
+            setProfileData(response.data);
+
+            const resetValues = {
+                nombre: response.data.nombre || '',
+                segundo_nombre: response.data.segundo_nombre || '',
+                apellido: response.data.apellido || '',
+                year: response.data.year || 0,
+                telefono: response.data.telefono || '',
+                habilidades: response.data.habilidades ? response.data.habilidades.map(h => h.id) : [],
+                email: response.data.email || '',
+                media: response.data.media || '',
+            };
+
+            methods.reset(resetValues);
             setIsEditing(false);
 
-        } catch (err) {
-            setServerError('Error al guardar el perfil.');
+        } catch (error) {
+            // Mostrar información detallada del error si la API la proporciona
+            console.error('Error al guardar perfil:', error);
+            if (error.response && error.response.data) {
+                console.error('Detalles del servidor:', error.response.data);
+                // Mostrar mensaje específico si viene del servidor
+                const serverMsg = typeof error.response.data === 'string' ? error.response.data : (error.response.data.detail || JSON.stringify(error.response.data));
+                setServerError(`Error al guardar el perfil: ${serverMsg}`);
+            } else {
+                setServerError('Error al guardar el perfil. Intenta de nuevo.');
+            }
         }
     };
 
@@ -185,7 +235,7 @@ const ProfilePage = () => {
                         {/* Box que contiene datos personales y habilidades */}
                         <Box
                             component={isEditing ? 'form' : 'div'}
-                            onSubmit={isEditing ? handleSubmit(onSubmit) : undefined}
+                            onSubmit={isEditing ? methods.handleSubmit(onSubmit) : undefined}
                         >
                             <Grid container spacing={2}>
 
