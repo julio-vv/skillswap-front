@@ -121,7 +121,7 @@ const ProfilePage = () => {
                     </FormProvider>
 
                     <Grid size={{ xs: 12 }}>
-                        <ProfileCardReseñas />
+                        <ProfileCardReseñas profileData={profileData}/>
                     </Grid>
                 </Grid>
             </Container>

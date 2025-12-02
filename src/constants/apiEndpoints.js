@@ -16,3 +16,4 @@ export const USUARIOS = {
 
 export const HABILIDADES = 'habilidades/';
 export const TIPOS_HABILIDAD = 'tipos-habilidad/';
+export const VALORACIONES = 'valoraciones/';
