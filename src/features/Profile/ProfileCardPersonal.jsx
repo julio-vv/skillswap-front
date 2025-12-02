@@ -78,7 +78,9 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                     {!isEditing && (
                         <Grid container spacing={2} sx={{ mt: 1 }}>
                             <Grid size={{ xs: 12, sm: 6 }}>
-                                <Typography variant="body1">**Teléfono:** {profileData?.telefono || 'N/A'}</Typography>
+                                <Typography variant="body1">
+                                    <Typography component="span" sx={{ fontWeight: 'bold' }}>Teléfono:</Typography> {profileData?.telefono || 'N/A'}
+                                </Typography>
                             </Grid>
                         </Grid>
                     )}
