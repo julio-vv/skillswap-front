@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { TextField, Button, Container, Typography, Box, Alert, CircularProgress, Stack } from '@mui/material';
+import { TextField, Button, Container, Typography, Box, Alert, CircularProgress, Stack, IconButton, InputAdornment } from '@mui/material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 // import axiosInstance from '../../api/axiosInstance';
@@ -11,6 +12,7 @@ const LoginPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
 
     const onSubmit = async (data) => {
@@ -37,10 +39,19 @@ const LoginPage = () => {
         } catch (err) {
             // Manejo de errores (ej: credenciales inválidas)
             setLoading(false);
-            if (err.response && err.response.data.non_field_errors) {
-                 setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
+            if (err.response && err.response.data) {
+                const apiErrors = err.response.data;
+                if (apiErrors.non_field_errors) {
+                    setError("Credenciales inválidas. Por favor, verifica tu email y contraseña.");
+                } else if (apiErrors.email) {
+                    setError(`Email: ${apiErrors.email[0]}`);
+                } else if (apiErrors.password) {
+                    setError(`Contraseña: ${apiErrors.password[0]}`);
+                } else {
+                    setError("Ocurrió un error al iniciar sesión. Por favor, inténtalo de nuevo.");
+                }
             } else {
-                 setError("Ocurrió un error al iniciar sesión.");
+                setError("Error de red o servidor. Verifica tu conexión.");
             }
         }
     };
@@ -91,9 +102,23 @@ const LoginPage = () => {
                         fullWidth
                         name="password"
                         label="Contraseña"
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         id="password"
                         autoComplete="current-password"
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <IconButton
+                                        aria-label="toggle password visibility"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        edge="end"
+                                    >
+                                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                                    </IconButton>
+                                </InputAdornment>
+                            )
+                        }}
                         // React Hook Form registration
                         {...register('password', { required: 'La contraseña es obligatoria' })}
                         error={!!errors.password}
