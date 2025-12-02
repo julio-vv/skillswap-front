@@ -25,7 +25,7 @@ dist-ssr
 .github/*
 
 # Lazygit
-.lazygit
+*.exe
 
 # Docker
 docker-compose.yml
