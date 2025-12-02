@@ -6,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { profileSchema } from '../../schemas/profileSchema';
-import Header from '../../components/Header';
 import { useAuth } from '../Auth/AuthContext'; // Para la función de Logout
 
 import ProfileCardPersonal from './ProfileCardPersonal';
@@ -228,7 +227,6 @@ const ProfilePage = () => {
 
     return (
         <Box>
-            <Header />
             <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
                 {/* 1. Título y Botón "Editar" */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>

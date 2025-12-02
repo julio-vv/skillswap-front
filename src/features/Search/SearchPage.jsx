@@ -7,7 +7,6 @@ import {
 import { Search as SearchIcon, PersonAdd } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
-import Header from '../../components/Header';
 
 const SearchPage = () => {
     const navigate = useNavigate();
@@ -99,7 +98,6 @@ const SearchPage = () => {
 
     return (
         <Box>
-            <Header />
             <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
                 {/* Título */}
                 <Typography variant="h4" component="h1" sx={{ mb: 3 }}>

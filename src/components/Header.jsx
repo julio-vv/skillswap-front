@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button } from '@mui/material';
+import { AppBar, Toolbar, Typography, IconButton, Box, Button, Stack } from '@mui/material';
 import { Notifications as NotificationsIcon, Person as PersonIcon, Search as SearchIcon, Home as HomeIcon, ExitToApp as LogoutIcon } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';

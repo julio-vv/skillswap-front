@@ -1,6 +1,6 @@
 import React from 'react';
-import { Container, Typography, Box, Grid, Card, CardContent } from '@mui/material';
-import Header from '../../components/Header'; // Importamos el Header
+import { Container, Typography, Box, Grid, Card, CardContent, Stack, Button } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 // ####################--AUN NO ESTA LISTO--#####################
 
@@ -22,6 +22,7 @@ const MatchCard = ({ user1, user2, skillOffers, skillWants }) => (
 );
 
 const MatchesPage = () => {
+    const navigate = useNavigate();
     // Datos de ejemplo basados en el mockup
     const activeMatches = [
         { id: 1, user1: "Julio Valenzuela", user2: "Maria Inostroza", skillOffers: "Manejo de servidores", skillWants: "Ilustración digital" },
@@ -30,11 +31,14 @@ const MatchesPage = () => {
 
     return (
         <Box>
-            <Header /> {/* Muestra la barra de navegación */}
             <Container maxWidth="md" sx={{ mt: 4 }}>
-                <Typography variant="h5" component="h2" gutterBottom>
-                    Matches Activos
-                </Typography>
+                {/* Encabezado de sección con CTA */}
+                <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+                    <Typography variant="h5" component="h2">Matches Activos</Typography>
+                    <Button variant="contained" onClick={() => navigate('/search')}>
+                        Buscar usuarios / crear match
+                    </Button>
+                </Stack>
                 
                 {/* Lista de Matches Activos */}
                 <Grid container spacing={2}>
@@ -42,6 +46,15 @@ const MatchesPage = () => {
                         {activeMatches.map(match => (
                             <MatchCard key={match.id} {...match} />
                         ))}
+                        {activeMatches.length === 0 && (
+                            <Card sx={{ p: 2 }}>
+                                <CardContent>
+                                    <Typography variant="body2" color="text.secondary">
+                                        Aún no tienes matches. Usa el botón de arriba para buscar usuarios y crear uno.
+                                    </Typography>
+                                </CardContent>
+                            </Card>
+                        )}
                     </Grid>
                 </Grid>
 
