@@ -1,5 +1,6 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from './features/Auth/AuthContext';
 
 import StartScreen from './features/Auth/StartScreen';
@@ -7,6 +8,7 @@ import LoginPage from './features/Auth/LoginPage';
 import RegisterPage from './features/Auth/RegisterPage';
 import MatchesPage from './features/Matches/MatchesPage';
 import ProfilePage from './features/Profile/ProfilePage';
+import SearchPage from './features/Search/SearchPage';
 
 // Componente Wrapper para rutas protegidas
 const ProtectedRoute = ({ element }) => {
@@ -14,9 +16,18 @@ const ProtectedRoute = ({ element }) => {
     
     // Mientras verifica la autenticación, no redirigir (evita parpadeo)
     if (isLoading) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-            Cargando...
-        </div>;
+        return (
+            <Box 
+                sx={{ 
+                    display: 'flex', 
+                    justifyContent: 'center', 
+                    alignItems: 'center', 
+                    height: '100vh' 
+                }}
+            >
+                <CircularProgress size={60} />
+            </Box>
+        );
     }
     
     // Si no está autenticado, lo redirige a la página de login
@@ -35,7 +46,8 @@ function App() {
                 {/* Rutas Privadas (¡Solo para usuarios logueados!) */}
                 <Route path="/home" element={<ProtectedRoute element={<MatchesPage />} />} />
                 <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
-                <Route path="/search" element={<ProtectedRoute element={<h1>Búsqueda...</h1>} />} />
+                <Route path="/usuarios/:id" element={<ProtectedRoute element={<ProfilePage />} />} />
+                <Route path="/search" element={<ProtectedRoute element={<SearchPage />} />} />
                 <Route path="/notifications" element={<ProtectedRoute element={<h1>Notificaciones...</h1>} />} />
 
 

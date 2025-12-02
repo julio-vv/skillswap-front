@@ -3,6 +3,7 @@ import { Container, Typography, Box, Button, TextField, Alert, Stack, CircularPr
 import { Edit as EditIcon } from '@mui/icons-material';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useParams } from 'react-router-dom';
 import axiosInstance from '../../api/axiosInstance';
 import { profileSchema } from '../../schemas/profileSchema';
 import Header from '../../components/Header';
@@ -13,6 +14,7 @@ import ProfileCardHabilidades from './ProfileCardHabilidades';
 import ProfileCardReseñas from './ProfileCardReseñas';
 
 const ProfilePage = () => {
+    const { id: urlUserId } = useParams(); // Obtener ID de la URL si existe
     const { logout, user } = useAuth(); // Para cerrar sesión. `user` contiene el id si tu API requiere `usuarios/{id}/`
     const [isLoading, setIsLoading] = useState(true);
     const [serverError, setServerError] = useState('');
@@ -20,6 +22,9 @@ const ProfilePage = () => {
     const [profileData, setProfileData] = useState(null); //<- Estado para almacenar los datos del perfil
     const [allSkills, setAllSkills] = useState([]); // Para habilidades completas
     const [skillTypes, setSkillTypes] = useState([]); // Para Tipos de Habilidad
+    
+    // Determinar si estamos viendo nuestro propio perfil o el de otro usuario
+    const isOwnProfile = !urlUserId || (user && String(user.id) === String(urlUserId));
 
     // Configurar React Hook Form con el esquema de Perfil
     const methods = useForm({
@@ -36,12 +41,14 @@ const ProfilePage = () => {
         formState: { isDirty, isSubmitting }
     } = methods;
 
-    // 1. OBTENCIÓN DE DATOS (GET /auth/user/)
+    // 1. OBTENCIÓN DE DATOS (GET /auth/user/ o /usuarios/:id/)
     const fetchUserProfile = async () => {
         setIsLoading(true);
         setServerError('');
         try {
-            const response = await axiosInstance.get('auth/user/');
+            // Si hay ID en la URL, obtener ese perfil; si no, obtener el propio
+            const endpoint = urlUserId ? `usuarios/${urlUserId}/` : 'auth/user/';
+            const response = await axiosInstance.get(endpoint);
             const userData = response.data;
 
             setProfileData(userData); // Guardar los datos del perfil en el estado
@@ -88,7 +95,7 @@ const ProfilePage = () => {
     useEffect(() => {
         fetchUserProfile();
         fetchSkillData();
-    }, []);
+    }, [urlUserId]); // Re-cargar si cambia el ID en la URL
 
     // 2. ENVÍO DE DATOS (PATCH /auth/user/)
     const onSubmit = async (data) => {
@@ -210,10 +217,10 @@ const ProfilePage = () => {
                 {/* 1. Título y Botón "Editar" */}
                 <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
                     <Typography variant="h4" component="h1">
-                        Mi Perfil
+                        {isOwnProfile ? 'Mi Perfil' : 'Perfil de Usuario'}
                     </Typography>
-                    {/* El botón de editar solo aparece si NO estamos editando */}
-                    {!isEditing && (
+                    {/* El botón de editar solo aparece si es nuestro perfil y NO estamos editando */}
+                    {isOwnProfile && !isEditing && (
                         <Button
                             variant="outlined"
                             startIcon={<EditIcon />}
@@ -243,7 +250,7 @@ const ProfilePage = () => {
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <ProfileCardPersonal
                                         profileData={profileData}
-                                        isEditing={isEditing}
+                                        isEditing={isOwnProfile && isEditing}
                                     />
                                 </Grid>
 
@@ -251,14 +258,14 @@ const ProfilePage = () => {
                                 <Grid size={{ xs: 12, sm: 6 }}>
                                     <ProfileCardHabilidades
                                         profileData={profileData}
-                                        isEditing={isEditing}
+                                        isEditing={isOwnProfile && isEditing}
                                         allSkills={allSkills}
                                         skillTypes={skillTypes}
                                     />
                                 </Grid>
 
-                                {/* Botones de Guardar/Cancelar solo si está editando */}
-                                {isEditing && (
+                                {/* Botones de Guardar/Cancelar solo si es nuestro perfil y está editando */}
+                                {isOwnProfile && isEditing && (
                                     <Grid xs={12}>
                                         <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
                                             <Button
