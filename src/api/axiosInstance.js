@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { ERROR_MESSAGES, extractApiErrorMessage } from '../constants/errorMessages';
+import { ROUTES } from '../constants/routePaths';
 
 // La variable de entorno VITE_API_URL es inyectada por Docker/Vite
 const BASE_URL = import.meta.env.VITE_API_URL || 'https://api.omarmontanares.com/api/';
@@ -37,17 +39,33 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        const status = error.response?.status;
+
         // Si recibimos un 401 (token inválido o expirado), limpiamos la sesión
-        if (error.response?.status === 401) {
-            // Evitar múltiples redirecciones si ya estamos en login
-            if (!window.location.pathname.includes('/login')) {
+        if (status === 401) {
+            if (!window.location.pathname.includes(ROUTES.LOGIN)) {
                 console.warn('Token inválido o expirado. Cerrando sesión...');
                 localStorage.removeItem('skillswap_token');
                 localStorage.removeItem('skillswap_user');
-                window.location.href = '/login';
+                window.location.href = ROUTES.LOGIN;
             }
         }
-        
+
+        // Adjuntar mensaje amigable si viene del backend
+        try {
+            const friendly = error.response?.data ? extractApiErrorMessage(error.response.data) : null;
+            if (friendly) error._friendlyMessage = friendly;
+        } catch {}
+
+        // Logs consistentes
+        if (error.response) {
+            console.error('API error:', status, error._friendlyMessage || ERROR_MESSAGES.unexpected);
+        } else if (error.request) {
+            console.error('Network error:', ERROR_MESSAGES.network);
+        } else {
+            console.error('Error:', error.message || ERROR_MESSAGES.unexpected);
+        }
+
         return Promise.reject(error);
     }
 );

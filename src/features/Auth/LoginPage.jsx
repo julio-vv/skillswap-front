@@ -4,8 +4,11 @@ import { TextField, Button, Container, Typography, Box, Alert, CircularProgress,
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMessages';
 // import axiosInstance from '../../api/axiosInstance';
 import axiosPublic from '../../api/axiosPublic';
+import { AUTH } from '../../constants/apiEndpoints';
+import { ROUTES } from '../../constants/routePaths';
 
 const LoginPage = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
@@ -21,7 +24,7 @@ const LoginPage = () => {
         
         try {
             // Llamar al endpoint POST /auth/login/
-            const response = await axiosPublic.post('auth/login/', {
+            const response = await axiosPublic.post(AUTH.LOGIN, {
                 email: data.email,
                 password: data.password,
             });
@@ -33,27 +36,19 @@ const LoginPage = () => {
             await login(token);
 
             // Redirigir al usuario
-            navigate('/home'); 
+            navigate(ROUTES.HOME); 
             
         } catch (err) {
             setLoading(false);
             
-            // Manejo de errores mejorado
+            // Manejo de errores centralizado
             if (err.response?.data) {
-                const apiErrors = err.response.data;
-                if (apiErrors.non_field_errors) {
-                    setError("Credenciales inválidas. Verifica tu email y contraseña.");
-                } else if (apiErrors.email) {
-                    setError(`Email: ${apiErrors.email[0]}`);
-                } else if (apiErrors.password) {
-                    setError(`Contraseña: ${apiErrors.password[0]}`);
-                } else if (apiErrors.detail) {
-                    setError(apiErrors.detail);
-                } else {
-                    setError("Error al iniciar sesión. Intenta nuevamente.");
-                }
+                const msg = extractApiErrorMessage(err.response.data);
+                setError(msg || ERROR_MESSAGES.unexpected);
+            } else if (err.request) {
+                setError(ERROR_MESSAGES.network);
             } else {
-                setError("Error de red. Verifica tu conexión a internet.");
+                setError(err.message || ERROR_MESSAGES.unexpected);
             }
         }
     };
@@ -139,14 +134,14 @@ const LoginPage = () => {
                     </Button>
                     
                     <Stack spacing={1} sx={{ mt: 1 }}>
-                        <Button color="secondary" onClick={() => navigate('/register')} fullWidth>
+                        <Button color="secondary" onClick={() => navigate(ROUTES.REGISTER)} fullWidth>
                             ¿No tienes cuenta? Regístrate aquí
                         </Button>
                         
                         {/* Botón para volver a atras */}
                         <Button 
                             variant="text" 
-                            onClick={() => navigate('/')} 
+                            onClick={() => navigate(ROUTES.ROOT)} 
                             fullWidth
                         >
                             Volver

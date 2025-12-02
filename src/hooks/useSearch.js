@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { useDebounce } from './useDebounce';
 import { useErrorHandler } from './useErrorHandler';
+import { USUARIOS } from '../constants/apiEndpoints';
 
 /**
  * Hook para manejar la lógica de búsqueda de usuarios
@@ -38,9 +39,7 @@ export const useSearch = (debounceDelay = 500) => {
         setHasSearched(true);
 
         try {
-            const response = await axiosInstance.get(
-                `usuarios/buscar/?q=${encodeURIComponent(query)}&page=${page}`
-            );
+            const response = await axiosInstance.get(USUARIOS.buscar(query, page));
             
             // Manejar respuesta paginada o lista directa
             if (response.data.results) {

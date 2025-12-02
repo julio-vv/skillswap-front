@@ -2,8 +2,9 @@ import React from 'react';
 import { Button, Stack } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { ROUTES } from '../../constants/routePaths';
 
-const AuthButtons = ({ loginPath = "/login", registerPath = "/register" }) => {
+const AuthButtons = ({ loginPath = ROUTES.LOGIN, registerPath = ROUTES.REGISTER }) => {
     const navigate = useNavigate();
     const { login } = useAuth();
 
@@ -16,7 +17,7 @@ const AuthButtons = ({ loginPath = "/login", registerPath = "/register" }) => {
         login(TEST_TOKEN); 
 
         // Redirigir al home
-        navigate('/home'); 
+        navigate(ROUTES.HOME); 
     };
 
     return (

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Container, Typography, Box, Grid, Card, CardContent, Stack, Button } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../constants/routePaths';
 
 // ####################--AUN NO ESTA LISTO--#####################
 
@@ -35,7 +36,7 @@ const MatchesPage = () => {
                 {/* Encabezado de sección con CTA */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
                     <Typography variant="h5" component="h2">Matches Activos</Typography>
-                    <Button variant="contained" onClick={() => navigate('/search')}>
+                    <Button variant="contained" onClick={() => navigate(ROUTES.SEARCH)}>
                         Buscar usuarios / crear match
                     </Button>
                 </Stack>

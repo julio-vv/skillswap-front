@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import axiosInstance from '../../api/axiosInstance';
+import { AUTH } from '../../constants/apiEndpoints';
 
 const AuthContext = createContext(null);
 
@@ -45,7 +46,7 @@ export const AuthProvider = ({ children }) => {
 
         try {
             // Obtener datos del usuario inmediatamente después del login
-            const response = await axiosInstance.get('auth/user/');
+            const response = await axiosInstance.get(AUTH.USER);
             const userData = response.data;
             localStorage.setItem('skillswap_user', JSON.stringify(userData));
             setUser(userData);

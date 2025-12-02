@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { ERROR_MESSAGES, extractApiErrorMessage } from '../constants/errorMessages';
 
 /**
  * Hook para manejo centralizado de errores
@@ -20,24 +21,24 @@ export const useErrorHandler = () => {
             console.error('Error:', err);
         }
 
-        let message = 'Ha ocurrido un error inesperado';
+        let message = ERROR_MESSAGES.unexpected;
 
         if (err.response) {
             const { status, data } = err.response;
             
             if (status === 401) {
-                message = 'Sesión expirada. Por favor, inicia sesión nuevamente.';
+                message = ERROR_MESSAGES.sessionExpired;
             } else if (status === 403) {
-                message = 'No tienes permisos para realizar esta acción.';
+                message = ERROR_MESSAGES.forbidden;
             } else if (status === 404) {
-                message = 'Recurso no encontrado.';
+                message = ERROR_MESSAGES.notFound;
             } else if (status >= 500) {
-                message = 'Error del servidor. Intenta nuevamente más tarde.';
+                message = ERROR_MESSAGES.server;
             } else if (data) {
-                message = extractErrorMessage(data);
+                message = extractApiErrorMessage(data);
             }
         } else if (err.request) {
-            message = 'Error de conexión. Verifica tu conexión a internet.';
+            message = ERROR_MESSAGES.network;
         } else if (err.message) {
             message = err.message;
         }
@@ -54,23 +55,4 @@ export const useErrorHandler = () => {
     return { error, handleError, clearError };
 };
 
-/**
- * Extrae el mensaje de error de la respuesta del servidor
- * @param {Object|string} data - Datos de error del servidor
- * @returns {string} Mensaje de error formateado
- */
-function extractErrorMessage(data) {
-    if (typeof data === 'string') return data;
-    if (data.detail) return data.detail;
-    if (data.message) return data.message;
-    if (data.non_field_errors) return data.non_field_errors.join(' ');
-    
-    // Buscar el primer campo con error
-    const firstKey = Object.keys(data)[0];
-    if (firstKey) {
-        const value = data[firstKey];
-        return Array.isArray(value) ? value.join(' ') : String(value);
-    }
-    
-    return 'Error desconocido';
-}
+// La extracción de mensajes se centraliza en `src/constants/errorMessages.js`

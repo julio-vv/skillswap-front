@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, Outlet, useLocation, NavLink } from 'react-router-dom';
 import { Box, CircularProgress } from '@mui/material';
 import { useAuth } from './features/Auth/AuthContext';
+import { ROUTES } from './constants/routePaths';
 import Header from './components/Header';
 import StartScreen from './features/Auth/StartScreen';
 import LoginPage from './features/Auth/LoginPage';
@@ -15,12 +16,12 @@ function usePageTitle() {
     const { pathname } = useLocation();
     useEffect(() => {
         const titles = {
-            '/home': 'SkillSwap — Matches',
-            '/search': 'SkillSwap — Buscar Usuarios',
-            '/profile': 'SkillSwap — Mi Perfil',
-            '/login': 'SkillSwap — Iniciar Sesión',
-            '/register': 'SkillSwap — Registro',
-            '/': 'SkillSwap — Bienvenida',
+            [ROUTES.HOME]: 'SkillSwap — Matches',
+            [ROUTES.SEARCH]: 'SkillSwap — Buscar Usuarios',
+            [ROUTES.PROFILE]: 'SkillSwap — Mi Perfil',
+            [ROUTES.LOGIN]: 'SkillSwap — Iniciar Sesión',
+            [ROUTES.REGISTER]: 'SkillSwap — Registro',
+            [ROUTES.ROOT]: 'SkillSwap — Bienvenida',
         };
         const base = 'SkillSwap';
         if (pathname.startsWith('/usuarios/')) {
@@ -40,7 +41,7 @@ const ProtectedRoute = ({ element }) => {
             </Box>
         );
     }
-    return isAuthenticated ? element : <Navigate to="/login" />;
+    return isAuthenticated ? element : <Navigate to={ROUTES.LOGIN} />;
 };
 
 // Layout privado: Header + contenido
@@ -60,17 +61,17 @@ function App() {
     return (
         <Routes>
             {/* Público */}
-            <Route path="/" element={<StartScreen />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+            <Route path={ROUTES.ROOT} element={<StartScreen />} />
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
             {/* Privado con layout */}
             <Route element={<PrivateLayout />}>
-                <Route path="/home" element={<ProtectedRoute element={<MatchesPage />} />} />
-                <Route path="/profile" element={<ProtectedRoute element={<ProfilePage />} />} />
+                <Route path={ROUTES.HOME} element={<ProtectedRoute element={<MatchesPage />} />} />
+                <Route path={ROUTES.PROFILE} element={<ProtectedRoute element={<ProfilePage />} />} />
                 <Route path="/usuarios/:id" element={<ProtectedRoute element={<ProfilePage />} />} />
-                <Route path="/search" element={<ProtectedRoute element={<SearchPage />} />} />
-                <Route path="/notifications" element={<ProtectedRoute element={<h1>Notificaciones...</h1>} />} />
+                <Route path={ROUTES.SEARCH} element={<ProtectedRoute element={<SearchPage />} />} />
+                <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute element={<h1>Notificaciones...</h1>} />} />
             </Route>
 
             {/* 404 */}

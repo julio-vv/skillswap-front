@@ -7,6 +7,7 @@ import {
 import { Search as SearchIcon, PersonAdd } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
+import { ROUTES } from '../../constants/routePaths';
 
 const SearchPage = () => {
     const navigate = useNavigate();
@@ -31,7 +32,7 @@ const SearchPage = () => {
 
     const handleUserClick = (userId) => {
         // Navegar al perfil del usuario
-        navigate(`/usuarios/${userId}`);
+        navigate(ROUTES.USUARIO_BY_ID(userId));
     };
 
     return (

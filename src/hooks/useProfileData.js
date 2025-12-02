@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { useErrorHandler } from './useErrorHandler';
 import { formatProfileDataForForm } from '../utils/formatProfileDataForForm';
+import { AUTH, USUARIOS, HABILIDADES, TIPOS_HABILIDAD } from '../constants/apiEndpoints';
 
 /**
  * Hook para manejar la lógica de datos de perfil
@@ -23,7 +24,7 @@ export const useProfileData = (userId = null) => {
         clearError();
         
         try {
-            const endpoint = userId ? `usuarios/${userId}/` : 'auth/user/';
+            const endpoint = userId ? USUARIOS.detalle(userId) : AUTH.USER;
             const response = await axiosInstance.get(endpoint);
             setProfileData(response.data);
             return response.data;
@@ -41,8 +42,8 @@ export const useProfileData = (userId = null) => {
     const fetchSkillData = useCallback(async () => {
         try {
             const [skillsResponse, typesResponse] = await Promise.all([
-                axiosInstance.get('habilidades/'),
-                axiosInstance.get('tipos-habilidad/')
+                axiosInstance.get(HABILIDADES),
+                axiosInstance.get(TIPOS_HABILIDAD)
             ]);
 
             setAllSkills(skillsResponse.data);
@@ -64,7 +65,7 @@ export const useProfileData = (userId = null) => {
         try {
             const payload = hasFile ? createFormData(data) : prepareJsonPayload(data);
             const idForEndpoint = userId || profileData?.id;
-            const endpoint = idForEndpoint ? `usuarios/${idForEndpoint}/` : 'usuarios/me/';
+            const endpoint = idForEndpoint ? USUARIOS.detalle(idForEndpoint) : USUARIOS.me;
             
             const response = await axiosInstance.patch(endpoint, payload);
             setProfileData(response.data);

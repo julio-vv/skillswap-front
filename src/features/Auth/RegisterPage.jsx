@@ -8,6 +8,9 @@ import { zodResolver } from '@hookform/resolvers/zod'; // Necesario para usar Zo
 // import axiosInstance from '../../api/axiosInstance';
 import axiosPublic from '../../api/axiosPublic';
 import { registerSchema } from '../../schemas/authSchema'; // Importamos el esquema Zod
+import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMessages';
+import { AUTH } from '../../constants/apiEndpoints';
+import { ROUTES } from '../../constants/routePaths';
 
 const RegisterPage = () => {
     const navigate = useNavigate();
@@ -50,7 +53,7 @@ const RegisterPage = () => {
 
         try {
             // Llama al endpoint POST /auth/registration/
-            const response = await axiosPublic.post('auth/registration/', {
+            const response = await axiosPublic.post(AUTH.REGISTRATION, {
                 email: data.email,
                 password1: data.password1,
                 password2: data.password2,
@@ -66,39 +69,18 @@ const RegisterPage = () => {
             localStorage.setItem('skillswap_token', token);
 
             // Redirigir al usuario, quizás a una página de bienvenida o al perfil.
-            navigate('/home', { state: { registered: true } });
+            navigate(ROUTES.HOME, { state: { registered: true } });
 
         } catch (err) {
             setLoading(false);
-            // Manejo de errores específicos de DRF (ej. email ya en uso)
-            if (err.response && err.response.data) {
-                const apiErrors = err.response.data;
-
-                console.error('API Validation Errors:', apiErrors);
-
-                let errorMessage = 'Error al registrar: ';
-
-                if (apiErrors.email) {
-                    setError(`Email: ${apiErrors.email[0]}`);
-                } else if (apiErrors.password1) {
-                    setError(`Contraseña: ${apiErrors.password1.join(' ')}`);
-                } else if (apiErrors.password2) {
-                    setError(`Confirmación de contraseña: ${apiErrors.password2[0]}`);
-                } else if (apiErrors.non_field_errors) {
-                    setError(`${apiErrors.non_field_errors.join(' ')}`);
-                } else if (Object.keys(apiErrors).length > 0) {
-                    const firstKey = Object.keys(apiErrors)[0];
-                    const fieldName = {
-                        'nombre': 'Nombre',
-                        'apellido': 'Apellido',
-                        'segundo_nombre': 'Segundo Nombre'
-                    }[firstKey] || firstKey;
-                    setError(`${fieldName}: ${Array.isArray(apiErrors[firstKey]) ? apiErrors[firstKey].join(' ') : apiErrors[firstKey]}`);
-                } else {
-                    setError('Ocurrió un error al registrar. Inténtalo de nuevo.');
-                }
+            // Manejo de errores centralizado
+            if (err.response?.data) {
+                const msg = extractApiErrorMessage(err.response.data);
+                setError(msg || ERROR_MESSAGES.unexpected);
+            } else if (err.request) {
+                setError(ERROR_MESSAGES.network);
             } else {
-                setError('Error de red o servidor.');
+                setError(err.message || ERROR_MESSAGES.unexpected);
             }
         }
     };
@@ -242,10 +224,10 @@ const RegisterPage = () => {
                     </Button>
 
                     <Stack spacing={1} sx={{ mt: 1 }}>
-                        <Button color="secondary" onClick={() => navigate('/login')} fullWidth>
+                        <Button color="secondary" onClick={() => navigate(ROUTES.LOGIN)} fullWidth>
                             ¿Ya tienes cuenta? Inicia sesión
                         </Button>
-                        <Button variant="text" onClick={() => navigate('/')} fullWidth>
+                        <Button variant="text" onClick={() => navigate(ROUTES.ROOT)} fullWidth>
                             Volver a Inicio
                         </Button>
                     </Stack>
