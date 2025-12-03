@@ -36,10 +36,10 @@ const SearchPage = () => {
     };
 
     return (
-        <Box>
-            <Container maxWidth="md" sx={{ mt: 4, mb: 4 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: 'calc(100vh - 64px)' }}>
+            <Container maxWidth="md" sx={{ py: 4 }}>
                 {/* Título */}
-                <Typography variant="h4" component="h1" sx={{ mb: 3 }}>
+                <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 600 }}>
                     Buscar Usuarios
                 </Typography>
 

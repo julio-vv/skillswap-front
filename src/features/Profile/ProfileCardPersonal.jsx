@@ -48,17 +48,26 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                         {/* Imagen de Perfil */}
                         <Box sx={{ position: 'relative' }}>
                             <Box
-                                sx={{
-                                    width: 80, height: 80, borderRadius: '50%',
+                                sx={(theme) => ({
+                                    width: 80, 
+                                    height: 80, 
+                                    borderRadius: '50%',
                                     backgroundImage: mediaUrl ? `url(${mediaUrl})` : 'none',
-                                    backgroundSize: 'cover', backgroundPosition: 'center',
+                                    backgroundSize: 'cover', 
+                                    backgroundPosition: 'center',
                                     mr: 2,
-                                    border: '2px solid #ccc',
-                                    backgroundColor: !mediaUrl ? '#f5f5f5' : 'transparent'
-                                }}
+                                    border: `2px solid ${theme.palette.divider}`,
+                                    backgroundColor: !mediaUrl ? theme.palette.action.hover : 'transparent'
+                                })}
                             >
                                 {!mediaUrl && (
-                                    <Box sx={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Box sx={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        display: 'flex', 
+                                        justifyContent: 'center', 
+                                        alignItems: 'center' 
+                                    }}>
                                         <AccountCircle sx={{ fontSize: 50, color: 'text.secondary' }} />
                                     </Box>
                                 )}

@@ -31,16 +31,21 @@ const MatchesPage = () => {
     ];
 
     return (
-        <Box>
-            <Container maxWidth="md" sx={{ mt: 4 }}>
+        <Box sx={{ bgcolor: 'background.default', minHeight: 'calc(100vh - 64px)' }}>
+            <Container maxWidth="md" sx={{ py: 4 }}>
+                {/* Título principal */}
+
+
                 {/* Encabezado de sección con CTA */}
                 <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-                    <Typography variant="h5" component="h2">Matches Activos</Typography>
+                    <Typography variant="h4" component="h1" sx={{ mb: 3, fontWeight: 600 }}>
+                        Matches
+                    </Typography>
                     <Button variant="contained" onClick={() => navigate(ROUTES.SEARCH)}>
-                        Buscar usuarios / crear match
+                        Buscar usuarios
                     </Button>
                 </Stack>
-                
+
                 {/* Lista de Matches Activos */}
                 <Grid container spacing={2}>
                     <Grid size={{ xs: 12 }}>

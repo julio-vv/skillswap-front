@@ -52,3 +52,6 @@ test-results/
 docker-compose.yml
 Dockerfile
 .dockerignore
+
+# Material-UI docs
+CHECKLIST_MUI.md

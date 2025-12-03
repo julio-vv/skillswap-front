@@ -54,22 +54,40 @@ const LoginPage = () => {
     };
 
     return (
-        <Container component="main" maxWidth="xs">
+        <Container 
+            component="main" 
+            maxWidth="xs"
+            sx={{
+                minHeight: '100vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+            }}
+        >
             <Box
                 sx={{
-                    marginTop: 8,
+                    width: '100%',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
+                    py: 4,
                 }}
             >
-                <Typography component="h1" variant="h5">
+                <Typography component="h1" variant="h4" sx={{ fontWeight: 600, mb: 3 }}>
                     Inicia Sesión
                 </Typography>
                 
-                {error && <Alert severity="error" sx={{ width: '100%', mt: 2 }}>{error}</Alert>}
+                {error && (
+                    <Alert 
+                        severity="error" 
+                        sx={{ width: '100%', mb: 2 }}
+                        onClose={() => setError('')}
+                    >
+                        {error}
+                    </Alert>
+                )}
 
-                <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1 }}>
+                <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
                     {/* Campo Email */}
                     <TextField
                         margin="normal"
@@ -80,7 +98,6 @@ const LoginPage = () => {
                         name="email"
                         autoComplete="email"
                         autoFocus
-                        // React Hook Form registration
                         {...register('email', { 
                             required: 'El email es obligatorio', 
                             pattern: {
@@ -90,6 +107,23 @@ const LoginPage = () => {
                         })}
                         error={!!errors.email}
                         helperText={errors.email ? errors.email.message : ''}
+                        sx={{
+                            '& input:-webkit-autofill': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                                WebkitTextFillColor: 'inherit',
+                                caretColor: 'inherit',
+                                borderRadius: 'inherit',
+                            },
+                            '& input:-webkit-autofill:hover': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                            '& input:-webkit-autofill:focus': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                            '& input:-webkit-autofill:active': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                        }}
                     />
                     
                     {/* Campo Contraseña */}
@@ -116,10 +150,26 @@ const LoginPage = () => {
                                 </InputAdornment>
                             )
                         }}
-                        // React Hook Form registration
                         {...register('password', { required: 'La contraseña es obligatoria' })}
                         error={!!errors.password}
                         helperText={errors.password ? errors.password.message : ''}
+                        sx={{
+                            '& input:-webkit-autofill': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                                WebkitTextFillColor: 'inherit',
+                                caretColor: 'inherit',
+                                borderRadius: 'inherit',
+                            },
+                            '& input:-webkit-autofill:hover': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                            '& input:-webkit-autofill:focus': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                            '& input:-webkit-autofill:active': {
+                                WebkitBoxShadow: '0 0 0 100px transparent inset',
+                            },
+                        }}
                     />
                     
                     {/* Botón de Submit */}

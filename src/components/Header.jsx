@@ -34,44 +34,71 @@ const Header = () => {
 
     return (
         <AppBar position="static" color="default" elevation={1}>
-            <Toolbar>
+            <Toolbar sx={{ gap: 1 }}>
                 {/* Logo de SkillSwap */}
-                <Typography variant="h6" component="div" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+                <Typography 
+                    variant="h6" 
+                    component="div" 
+                    sx={{ 
+                        flexGrow: 1, 
+                        fontWeight: 700,
+                        background: (theme) => 
+                            `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                        backgroundClip: 'text',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                    }}
+                >
                     Skill Swap
                 </Typography>
 
-                {/* ---  BOTÓN: FEED/MATCHES --- */}
-                <Box>
+                {/* Botones de navegación */}
+                <Stack direction="row" spacing={0.5}>
+                    {/* BOTÓN: FEED/MATCHES */}
                     <IconButton
-                        color="inherit"
+                        color="primary"
                         onClick={() => navigate(ROUTES.HOME)}
+                        aria-label="Ir a inicio"
                     >
                         <HomeIcon />
                     </IconButton>
-                </Box>
 
-                {/* Botón de Búsqueda (Página Búsqueda del mockup) */}
-                <IconButton color="inherit" onClick={() => navigate(ROUTES.SEARCH)}>
-                    <SearchIcon />
-                </IconButton>
+                    {/* Botón de Búsqueda */}
+                    <IconButton 
+                        color="primary" 
+                        onClick={() => navigate(ROUTES.SEARCH)}
+                        aria-label="Buscar usuarios"
+                    >
+                        <SearchIcon />
+                    </IconButton>
 
-                {/* Botón de Notificaciones */}
-                <IconButton color="inherit" onClick={() => navigate(ROUTES.NOTIFICATIONS)}>
-                    <NotificationsIcon />
-                </IconButton>
+                    {/* Botón de Notificaciones */}
+                    <IconButton 
+                        color="primary" 
+                        onClick={() => navigate(ROUTES.NOTIFICATIONS)}
+                        aria-label="Ver notificaciones"
+                    >
+                        <NotificationsIcon />
+                    </IconButton>
 
-                {/* Botón de Perfil */}
-                <IconButton
-                    color="inherit"
-                    onClick={() => navigate(ROUTES.PROFILE)}
-                >
-                    <PersonIcon />
-                </IconButton>
+                    {/* Botón de Perfil */}
+                    <IconButton
+                        color="primary"
+                        onClick={() => navigate(ROUTES.PROFILE)}
+                        aria-label="Ver perfil"
+                    >
+                        <PersonIcon />
+                    </IconButton>
 
-                {/* Botón de Logout */}
-                <IconButton color="inherit" onClick={handleLogout}>
-                    <LogoutIcon />
-                </IconButton>
+                    {/* Botón de Logout */}
+                    <IconButton 
+                        color="primary" 
+                        onClick={handleLogout}
+                        aria-label="Cerrar sesión"
+                    >
+                        <LogoutIcon />
+                    </IconButton>
+                </Stack>
             </Toolbar>
         </AppBar>
     );

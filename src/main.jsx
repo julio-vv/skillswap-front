@@ -4,25 +4,29 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './features/Auth/AuthContext.jsx'
-import { Box, CircularProgress } from '@mui/material'
+import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material'
 import ErrorBoundary from './features/Common/ErrorBoundary.jsx'
+import theme from './theme/theme.js'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense
-            fallback={
-              <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-                <CircularProgress />
-              </Box>
-            }
-          >
-            <App />
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
-    </ErrorBoundary>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ErrorBoundary>
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense
+              fallback={
+                <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+                  <CircularProgress />
+                </Box>
+              }
+            >
+              <App />
+            </Suspense>
+          </AuthProvider>
+        </BrowserRouter>
+      </ErrorBoundary>
+    </ThemeProvider>
   </StrictMode>,
 );
