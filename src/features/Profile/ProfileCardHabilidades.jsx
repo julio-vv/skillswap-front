@@ -36,38 +36,31 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                 {/* MODO LECTURA: Usar Stack para organizar los datos */}
                 {!isEditing && (
                     <Stack spacing={2}> {/* Espaciado vertical entre secciones */}
-                            <Box>
-                                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Habilidades:</Typography>
-                                {profileData?.habilidades && profileData.habilidades.length > 0 ? (
-                                    <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
-                                        {profileData.habilidades.map((h, idx) => {
-                                            // `h` puede ser un objeto {id, nombre_habilidad} o un ID (number/string)
-                                            let skillObj = null;
-                                            if (h && typeof h === 'object') {
-                                                skillObj = h;
-                                            } else {
-                                                // Buscar en allSkills por id si disponemos de la lista completa
-                                                skillObj = allSkills?.find(s => s.id === h) || null;
-                                            }
-
-                                            const label = skillObj ? (skillObj.nombre_habilidad || skillObj.nombre || String(h)) : String(h);
-                                            const key = skillObj?.id ?? `habilidad-${String(h)}-${idx}`;
-
-                                            return (
-                                                <Typography component="li" key={key} variant="body1">{label}</Typography>
-                                            );
-                                        })}
-                                    </Stack>
-                                ) : (
-                                    <Typography variant="body1">Aún no has agregado tus habilidades.</Typography>
-                                )}
-                            </Box>
-
                         <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Años de Estudio:</Typography>
-                            <Typography variant="body1">
-                                {profileData?.year || 'N/A'}
-                            </Typography>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Habilidades:</Typography>
+                            {profileData?.habilidades && profileData.habilidades.length > 0 ? (
+                                <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
+                                    {profileData.habilidades.map((h, idx) => {
+                                        // `h` puede ser un objeto {id, nombre_habilidad} o un ID (number/string)
+                                        let skillObj = null;
+                                        if (h && typeof h === 'object') {
+                                            skillObj = h;
+                                        } else {
+                                            // Buscar en allSkills por id si disponemos de la lista completa
+                                            skillObj = allSkills?.find(s => s.id === h) || null;
+                                        }
+
+                                        const label = skillObj ? (skillObj.nombre_habilidad || skillObj.nombre || String(h)) : String(h);
+                                        const key = skillObj?.id ?? `habilidad-${String(h)}-${idx}`;
+
+                                        return (
+                                            <Typography component="li" key={key} variant="body1">{label}</Typography>
+                                        );
+                                    })}
+                                </Stack>
+                            ) : (
+                                <Typography variant="body1">Aún no has agregado tus habilidades.</Typography>
+                            )}
                         </Box>
                     </Stack>
                 )}
@@ -104,23 +97,23 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                             <Autocomplete
                                                 multiple
                                                 options={(
-                                                    allSkills ? 
-                                                    [...allSkills].sort((a, b) => {
-                                                        // Primero ordenar por grupo alfabéticamente
-                                                        const groupA = a.nombre_tipo || 'Otras';
-                                                        const groupB = b.nombre_tipo || 'Otras';
-                                                        const groupCompare = groupA.localeCompare(groupB);
-                                                        
-                                                        // Si están en el mismo grupo, ordenar por nombre de habilidad
-                                                        if (groupCompare === 0) {
-                                                            const nameA = a.nombre_habilidad || a.nombre || '';
-                                                            const nameB = b.nombre_habilidad || b.nombre || '';
-                                                            return nameA.localeCompare(nameB);
-                                                        }
-                                                        
-                                                        return groupCompare;
-                                                    }) : 
-                                                    []
+                                                    allSkills ?
+                                                        [...allSkills].sort((a, b) => {
+                                                            // Primero ordenar por grupo alfabéticamente
+                                                            const groupA = a.nombre_tipo || 'Otras';
+                                                            const groupB = b.nombre_tipo || 'Otras';
+                                                            const groupCompare = groupA.localeCompare(groupB);
+
+                                                            // Si están en el mismo grupo, ordenar por nombre de habilidad
+                                                            if (groupCompare === 0) {
+                                                                const nameA = a.nombre_habilidad || a.nombre || '';
+                                                                const nameB = b.nombre_habilidad || b.nombre || '';
+                                                                return nameA.localeCompare(nameB);
+                                                            }
+
+                                                            return groupCompare;
+                                                        }) :
+                                                        []
                                                 )}
                                                 getOptionLabel={(option) => option.nombre_habilidad || option.nombre || ''}
                                                 isOptionEqualToValue={(option, value) => option.id === value.id}
@@ -161,12 +154,12 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                                             <Chip
                                                                 key={idVal != null ? `skill-${idVal}` : `skill-${idx}`}
                                                                 label={label}
-                                                                                onDelete={() => {
-                                                                                    // Eliminar usando únicamente el estado de RHF
-                                                                                    const current = Array.isArray(field.value) ? field.value : [];
-                                                                                    const updatedIds = current.filter(id => String(id) !== String(idVal));
-                                                                                    field.onChange(updatedIds);
-                                                                                }}
+                                                                onDelete={() => {
+                                                                    // Eliminar usando únicamente el estado de RHF
+                                                                    const current = Array.isArray(field.value) ? field.value : [];
+                                                                    const updatedIds = current.filter(id => String(id) !== String(idVal));
+                                                                    field.onChange(updatedIds);
+                                                                }}
                                                             />
                                                         );
                                                     })
@@ -179,17 +172,6 @@ const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes 
                                 }}
                             />
                         </Box>
-
-                        {/* 2. Campo Años de Estudio */}
-                        {/* <TextField
-                            fullWidth
-                            label="Años de Estudio"
-                            type="number"
-                            InputLabelProps={{ shrink: true }}
-                            {...register('year', { valueAsNumber: true })}
-                            error={!!errors.year}
-                            helperText={errors.year?.message}
-                        /> */}
                     </Stack>
                 )}
             </CardContent>

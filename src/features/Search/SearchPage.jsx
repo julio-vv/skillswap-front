@@ -143,7 +143,7 @@ const SearchPage = () => {
                                     {/* Información del usuario */}
                                     <Grid sx={{ flex: 1 }}>
                                         <Typography variant="h6">
-                                            {user.nombre} {user.segundo_nombre} {user.apellido}
+                                            {user.nombre} {user.apellido}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                                             {user.email}

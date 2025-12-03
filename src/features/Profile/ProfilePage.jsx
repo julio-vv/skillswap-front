@@ -41,7 +41,7 @@ const ProfilePage = () => {
     const methods = useForm({
         resolver: zodResolver(profileSchema),
         defaultValues: {
-            nombre: '', segundo_nombre: '', apellido: '',
+            nombre: '', apellido: '',
             year: 0, telefono: '', habilidades: [], email: '', media: ''
         }
     });

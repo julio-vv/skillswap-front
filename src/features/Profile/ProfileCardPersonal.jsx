@@ -86,7 +86,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                         </Box>
                         <Box>
                             <Typography variant="h5">
-                                {profileData?.nombre} {profileData?.segundo_nombre} {profileData?.apellido}
+                                {profileData?.nombre} {profileData?.apellido}
                             </Typography>
                             <Typography variant="body2" color="text.secondary">
                                 {profileData?.email}
@@ -108,13 +108,11 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                     {/* MODO EDICIÓN */}
                     {isEditing && (
                         <Grid container spacing={2}>
-                            <Grid size={{ xs: 12, sm: 4 }}>
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField fullWidth label="Nombre" {...register('nombre')} error={!!errors.nombre} helperText={errors.nombre?.message} />
                             </Grid>
-                            <Grid size={{ xs: 12, sm: 4 }}>
-                                <TextField fullWidth label="Segundo Nombre" {...register('segundo_nombre')} error={!!errors.segundo_nombre} helperText={errors.segundo_nombre?.message} />
-                            </Grid>
-                            <Grid size={{ xs: 12, sm: 4 }}>
+                            
+                            <Grid size={{ xs: 12, sm: 6 }}>
                                 <TextField fullWidth label="Apellido" {...register('apellido')} error={!!errors.apellido} helperText={errors.apellido?.message} />
                             </Grid>
                             <Grid size={{ xs: 12, sm: 6 }}>
@@ -140,7 +138,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                             onChange={handleFileChange}
                                         />
                                     </Button>
-                                    <Button
+                                    {/* <Button
                                         variant="outlined"
                                         color="error"
                                         startIcon={<DeleteIcon />}
@@ -148,7 +146,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                         disabled
                                     >
                                         Eliminar
-                                    </Button>
+                                    </Button> */}
                                 </Stack>
                                 {errors.media && <Typography color="error" variant="caption" sx={{ mt: 1, display: 'block' }}>{errors.media.message}</Typography>}
                             </Grid>

@@ -25,10 +25,7 @@ export const registerSchema = z.object({
         .min(1, "El nombre es obligatorio.")
         .max(MAX_NAME_LENGTH, "El nombre es demasiado largo."),
 
-    segundo_nombre: z.string()
-        .max(MAX_NAME_LENGTH, "El segundo nombre es demasiado largo.")
-        .optional()
-        .or(z.literal('')),
+    
 
     apellido: z.string()
         .min(1, "El apellido es obligatorio.")

@@ -10,7 +10,6 @@ export function formatProfileDataForForm(userData) {
     if (!userData) return null;
     return {
         nombre: userData.nombre || '',
-        segundo_nombre: userData.segundo_nombre || '',
         apellido: userData.apellido || '',
         year: userData.year || 0,
         telefono: userData.telefono || '',

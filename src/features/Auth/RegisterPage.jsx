@@ -45,7 +45,6 @@ const RegisterPage = () => {
             password1: '',
             password2: '',
             nombre: '',
-            segundo_nombre: '',
             apellido: '',
         }
     });
@@ -75,7 +74,6 @@ const RegisterPage = () => {
                 password1: data.password1,
                 password2: data.password2,
                 nombre: data.nombre,
-                segundo_nombre: data.segundo_nombre || null, // Envía null si está vacío
                 apellido: data.apellido,
             });
 
@@ -121,10 +119,7 @@ const RegisterPage = () => {
                             required fullWidth label="Nombre" {...register('nombre')}
                             error={!!errors.nombre} helperText={errors.nombre?.message}
                         />
-                        <TextField
-                            fullWidth label="Segundo Nombre (Opcional)" {...register('segundo_nombre')}
-                            error={!!errors.segundo_nombre} helperText={errors.segundo_nombre?.message}
-                        />
+                        
                     </Stack>
                     <TextField
                         required fullWidth margin="normal" label="Apellido" {...register('apellido')}

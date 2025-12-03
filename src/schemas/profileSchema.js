@@ -15,10 +15,6 @@ export const profileSchema = z.object({
         .max(50, "El apellido es demasiado largo."),
 
     // Campos opcionales
-    segundo_nombre: z.string()
-        .max(50, "El segundo nombre es demasiado largo.")
-        .optional()
-        .or(z.literal('')),
 
     telefono: z.string()
         .max(16, "El teléfono es demasiado largo.")
