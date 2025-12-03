@@ -1,5 +1,7 @@
 import React from 'react';
-import { Container, Alert, Button } from '@mui/material';
+import Container from '@mui/material/Container';
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 
 /**
  * Componente de error para ProfilePage

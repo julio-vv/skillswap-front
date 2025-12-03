@@ -1,9 +1,19 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button, Stack } from '@mui/material';
-import { Notifications as NotificationsIcon, Person as PersonIcon, Search as SearchIcon, Home as HomeIcon, ExitToApp as LogoutIcon } from '@mui/icons-material';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import NotificationsIcon from '@mui/icons-material/Notifications';
+import PersonIcon from '@mui/icons-material/Person';
+import SearchIcon from '@mui/icons-material/Search';
+import HomeIcon from '@mui/icons-material/Home';
+import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';
-import axiosInstance from '../api/axiosInstance';
+// axiosInstance se cargará dinámicamente sólo cuando se use logout
 import { AUTH } from '../constants/apiEndpoints';
 import { ROUTES } from '../constants/routePaths';
 
@@ -15,6 +25,7 @@ const Header = () => {
         try {
             // Opcional: notificar logout a la API si existe endpoint
             try {
+                const { default: axiosInstance } = await import('../api/axiosInstance');
                 await axiosInstance.post(AUTH.LOGOUT);
             } catch (apiErr) {
                 // Si el backend no requiere o falla, continuamos con limpieza local

@@ -1,7 +1,24 @@
 import React, { useState } from 'react';
 // Librerías
-import { Container, Typography, Box, Button, TextField, Alert, Stack, CircularProgress, MenuItem, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
-import { Visibility, VisibilityOff, CheckCircle, Cancel } from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
+import CircularProgress from '@mui/material/CircularProgress';
+import MenuItem from '@mui/material/MenuItem';
+import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
+import List from '@mui/material/List';
+import ListItem from '@mui/material/ListItem';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod'; // Necesario para usar Zod con RHF
@@ -141,7 +158,7 @@ const RegisterPage = () => {
                                         onMouseDown={(e) => e.preventDefault()}
                                         edge="end"
                                     >
-                                        {showPassword1 ? <VisibilityOff /> : <Visibility />}
+                                        {showPassword1 ? <VisibilityOffIcon /> : <VisibilityIcon />}
                                     </IconButton>
                                 </InputAdornment>
                             )
@@ -158,32 +175,32 @@ const RegisterPage = () => {
                             <Stack spacing={0.5} sx={{ width: '100%' }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     {passwordRequirements.minLength ? 
-                                        <CheckCircle sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
-                                        <Cancel sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
+                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
                                     <Typography variant="caption" color={passwordRequirements.minLength ? 'success.main' : 'text.secondary'} noWrap>
                                         Mínimo 8 caracteres
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     {passwordRequirements.hasNumber ? 
-                                        <CheckCircle sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
-                                        <Cancel sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
+                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
                                     <Typography variant="caption" color={passwordRequirements.hasNumber ? 'success.main' : 'text.secondary'} noWrap>
                                         Al menos un número
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     {passwordRequirements.hasLetter ? 
-                                        <CheckCircle sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
-                                        <Cancel sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
+                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
                                     <Typography variant="caption" color={passwordRequirements.hasLetter ? 'success.main' : 'text.secondary'} noWrap>
                                         Al menos una letra
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                     {passwordRequirements.notSimilarToEmail ? 
-                                        <CheckCircle sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
-                                        <Cancel sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
+                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
                                     <Typography variant="caption" color={passwordRequirements.notSimilarToEmail ? 'success.main' : 'text.secondary'} sx={{ wordBreak: 'break-word' }}>No debe ser similar al email
                                     </Typography>
                                 </Box>
@@ -207,7 +224,7 @@ const RegisterPage = () => {
                                         onMouseDown={(e) => e.preventDefault()}
                                         edge="end"
                                     >
-                                        {showPassword2 ? <VisibilityOff /> : <Visibility />}
+                                        {showPassword2 ? <VisibilityOffIcon /> : <VisibilityIcon />}
                                     </IconButton>
                                 </InputAdornment>
                             )

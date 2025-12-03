@@ -1,8 +1,16 @@
 import React from 'react';
-import { Box, Typography, Container } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
 import AuthButtons from './AuthButtons';
 
 const StartScreen = () => {
+    // Prefetch suave de páginas de Auth al pasar el mouse por la zona de botones
+    const prefetchAuthPages = () => {
+        // Carga paralela, no bloqueante
+        import('./LoginPage');
+        import('./RegisterPage');
+    };
     return (
         <Container
             component="main"
@@ -29,8 +37,10 @@ const StartScreen = () => {
                 Intercambio colaborativo de conocimientos
             </Typography>
 
-            {/* Componente de Botones */}
-            <AuthButtons />
+            {/* Componente de Botones con prefetch en hover */}
+            <Box onMouseEnter={prefetchAuthPages}>
+                <AuthButtons />
+            </Box>
 
             {/* Texto adicional de Copyright si es necesario */}
             <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>

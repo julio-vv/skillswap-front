@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import ProfileCardPersonal from '../ProfileCardPersonal';
 import ProfileCardHabilidades from '../ProfileCardHabilidades';
 

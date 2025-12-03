@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Stack } from '@mui/material';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import { ROUTES } from '../../constants/routePaths';

@@ -4,7 +4,10 @@ import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './features/Auth/AuthContext.jsx'
-import { Box, CircularProgress, CssBaseline, ThemeProvider } from '@mui/material'
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+import CssBaseline from '@mui/material/CssBaseline';
+import { ThemeProvider } from '@mui/material/styles';
 import ErrorBoundary from './features/Common/ErrorBoundary.jsx'
 import theme from './theme/theme.js'
 

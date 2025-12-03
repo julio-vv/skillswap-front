@@ -1,5 +1,8 @@
 import React from 'react';
-import { Grid, Stack, Button, CircularProgress } from '@mui/material';
+import Grid from '@mui/material/Grid';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import ProfileCardPersonal from '../ProfileCardPersonal';
 import ProfileCardHabilidades from '../ProfileCardHabilidades';
 

@@ -1,10 +1,21 @@
 import React from 'react';
-import {
-    Container, Typography, Box, TextField, InputAdornment,
-    Card, CardContent, Avatar, Stack, Chip, CircularProgress,
-    Alert, Grid, IconButton, Pagination
-} from '@mui/material';
-import { Search as SearchIcon, PersonAdd } from '@mui/icons-material';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Pagination from '@mui/material/Pagination';
+import SearchIcon from '@mui/icons-material/Search';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
 import { ROUTES } from '../../constants/routePaths';
@@ -173,7 +184,7 @@ const SearchPage = () => {
                                                 handleUserClick(user.id);
                                             }}
                                         >
-                                            <PersonAdd />
+                                                <PersonAddIcon />
                                         </IconButton>
                                     </Grid>
                                 </Grid>

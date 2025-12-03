@@ -1,8 +1,13 @@
 import React, { useEffect } from 'react';
-import {
-    Card, CardContent, Typography, Box, Grid,
-    TextField, Autocomplete, Chip, Stack
-} from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import { useFormContext, Controller } from 'react-hook-form';
 import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
 

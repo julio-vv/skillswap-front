@@ -1,6 +1,17 @@
 import React, { useState } from 'react';
-import { Card, CardContent, Typography, Box, Button, Grid, TextField, IconButton, Stack } from '@mui/material';
-import { Edit as EditIcon, AccountCircle, Delete, CloudUpload } from '@mui/icons-material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Grid from '@mui/material/Grid';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
+import EditIcon from '@mui/icons-material/Edit';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 // Usamos useFormContext para acceder a RHF
 import { useFormContext } from 'react-hook-form';
 
@@ -68,7 +79,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                         justifyContent: 'center', 
                                         alignItems: 'center' 
                                     }}>
-                                        <AccountCircle sx={{ fontSize: 50, color: 'text.secondary' }} />
+                                        <AccountCircleIcon sx={{ fontSize: 50, color: 'text.secondary' }} />
                                     </Box>
                                 )}
                             </Box>
@@ -118,7 +129,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                     <Button
                                         variant="outlined"
                                         component="label"
-                                        startIcon={<CloudUpload />}
+                                        startIcon={<CloudUploadIcon />}
                                         size="small"
                                     >
                                         Subir Imagen
@@ -132,7 +143,7 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
                                     <Button
                                         variant="outlined"
                                         color="error"
-                                        startIcon={<Delete />}
+                                        startIcon={<DeleteIcon />}
                                         size="small"
                                         disabled
                                     >
