@@ -15,13 +15,35 @@ import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import Pagination from '@mui/material/Pagination';
 import SearchIcon from '@mui/icons-material/Search';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import { useEffect, useMemo, useState } from 'react';
+import axiosInstance from '../../api/axiosInstance';
+import { HABILIDADES } from '../../constants/apiEndpoints';
 import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
 import { ROUTES } from '../../constants/routePaths';
 
 const SearchPage = () => {
     const navigate = useNavigate();
+    const [skillsList, setSkillsList] = useState([]);
+
+    useEffect(() => {
+        let mounted = true;
+        axiosInstance.get(HABILIDADES)
+            .then(res => { if (mounted) setSkillsList(res.data || []); })
+            .catch(() => { /* silencioso: no bloquear resultados si falla */ });
+        return () => { mounted = false; };
+    }, []);
+
+    const skillsMap = useMemo(() => {
+        const map = new Map();
+        for (const s of skillsList) {
+            if (s && s.id != null) {
+                map.set(String(s.id), s.nombre_habilidad || s.nombre || '');
+            }
+        }
+        return map;
+    }, [skillsList]);
 
     const {
         searchQuery,
@@ -129,8 +151,8 @@ const SearchPage = () => {
                         >
                             <CardContent>
                                 <Grid container spacing={2} alignItems="center">
-                                    {/* Avatar */}
-                                    <Grid>
+                                    {/* Columna 1: Avatar + datos */}
+                                    <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                         <Avatar 
                                             src={user.media} 
                                             alt={user.nombre}
@@ -138,45 +160,90 @@ const SearchPage = () => {
                                         >
                                             {user.nombre?.charAt(0).toUpperCase()}
                                         </Avatar>
+                                        <Box sx={{ minWidth: 0 }}>
+                                            <Typography variant="h6" noWrap>
+                                            {user.nombre} {user.apellido}
+                                            </Typography>
+                                            <Typography variant="body2" color="text.secondary" noWrap>
+                                                {user.email}
+                                            </Typography>
+                                        </Box>
                                     </Grid>
 
-                                    {/* Información del usuario */}
-                                    <Grid sx={{ flex: 1 }}>
-                                        <Typography variant="h6">
-                                            {user.nombre} {user.apellido}
+                                    {/* Columna 2: Habilidades que saben */}
+                                    <Grid size={{ xs: 12, md: 4 }}>
+                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                            Sabe enseñar
                                         </Typography>
-                                        <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                                            {user.email}
-                                        </Typography>
-
-                                        {/* Habilidades */}
-                                        {user.habilidades && user.habilidades.length > 0 && (
+                                        {user.habilidades_que_se_saben && user.habilidades_que_se_saben.length > 0 ? (
                                             <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                {user.habilidades.slice(0, 3).map((habilidad) => (
+                                                {user.habilidades_que_se_saben.slice(0, 3).map((habilidad) => (
                                                     <Chip 
-                                                        key={habilidad.id || habilidad}
-                                                        label={
-                                                            typeof habilidad === 'object' 
-                                                                ? (habilidad.nombre_habilidad || habilidad.nombre)
-                                                                : habilidad
-                                                        }
+                                                        key={(typeof habilidad === 'object' ? habilidad.id : habilidad) ?? Math.random()}
+                                                        label={(
+                                                            (() => {
+                                                                if (habilidad && typeof habilidad === 'object') {
+                                                                    return habilidad.nombre_habilidad || habilidad.nombre;
+                                                                }
+                                                                const name = skillsMap.get(String(habilidad));
+                                                                return name || String(habilidad);
+                                                            })()
+                                                        )}
                                                         size="small"
                                                         variant="outlined"
                                                     />
                                                 ))}
-                                                {user.habilidades.length > 3 && (
+                                                {user.habilidades_que_se_saben.length > 3 && (
                                                     <Chip 
-                                                        label={`+${user.habilidades.length - 3}`}
+                                                        label={`+${user.habilidades_que_se_saben.length - 3}`}
                                                         size="small"
                                                         variant="outlined"
                                                     />
                                                 )}
                                             </Stack>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary">Sin datos</Typography>
+                                        )}
+                                    </Grid>
+
+                                    {/* Columna 3: Habilidades por aprender */}
+                                    <Grid size={{ xs: 12, md: 3 }}>
+                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                            Quiere aprender
+                                        </Typography>
+                                        {user.habilidades_por_aprender && user.habilidades_por_aprender.length > 0 ? (
+                                            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                                {user.habilidades_por_aprender.slice(0, 3).map((habilidad) => (
+                                                    <Chip 
+                                                        key={(typeof habilidad === 'object' ? habilidad.id : habilidad) ?? Math.random()}
+                                                        label={(
+                                                            (() => {
+                                                                if (habilidad && typeof habilidad === 'object') {
+                                                                    return habilidad.nombre_habilidad || habilidad.nombre;
+                                                                }
+                                                                const name = skillsMap.get(String(habilidad));
+                                                                return name || String(habilidad);
+                                                            })()
+                                                        )}
+                                                        size="small"
+                                                        variant="outlined"
+                                                    />
+                                                ))}
+                                                {user.habilidades_por_aprender.length > 3 && (
+                                                    <Chip 
+                                                        label={`+${user.habilidades_por_aprender.length - 3}`}
+                                                        size="small"
+                                                        variant="outlined"
+                                                    />
+                                                )}
+                                            </Stack>
+                                        ) : (
+                                            <Typography variant="body2" color="text.secondary">Sin datos</Typography>
                                         )}
                                     </Grid>
 
                                     {/* Botón de acción */}
-                                    <Grid>
+                                    <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
                                         <IconButton 
                                             color="primary"
                                             onClick={(e) => {
@@ -184,7 +251,7 @@ const SearchPage = () => {
                                                 handleUserClick(user.id);
                                             }}
                                         >
-                                                <PersonAddIcon />
+                                                <ChevronRightIcon />
                                         </IconButton>
                                     </Grid>
                                 </Grid>

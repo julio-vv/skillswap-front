@@ -42,7 +42,10 @@ const ProfilePage = () => {
         resolver: zodResolver(profileSchema),
         defaultValues: {
             nombre: '', apellido: '',
-            year: 0, telefono: '', habilidades: [], email: '', media: ''
+            year: 0, telefono: '',
+            habilidades_que_se_saben: [],
+            habilidades_por_aprender: [],
+            email: '', media: ''
         }
     });
 

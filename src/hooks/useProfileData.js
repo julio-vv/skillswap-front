@@ -88,6 +88,14 @@ export const useProfileData = (userId = null) => {
         if (payload.media && typeof payload.media === 'string') {
             delete payload.media;
         }
+
+        // Asegurar arrays válidos para los campos nuevos
+        if (!Array.isArray(payload.habilidades_que_se_saben)) {
+            payload.habilidades_que_se_saben = [];
+        }
+        if (!Array.isArray(payload.habilidades_por_aprender)) {
+            payload.habilidades_por_aprender = [];
+        }
         
         return payload;
     };
@@ -101,9 +109,10 @@ export const useProfileData = (userId = null) => {
         const formData = new FormData();
 
         Object.entries(data).forEach(([key, value]) => {
-            if (key === 'habilidades' && Array.isArray(value)) {
-                // Enviar múltiples entradas con la misma clave
-                value.forEach(id => formData.append('habilidades', id));
+            if (key === 'habilidades_que_se_saben' && Array.isArray(value)) {
+                value.forEach(id => formData.append('habilidades_que_se_saben', id));
+            } else if (key === 'habilidades_por_aprender' && Array.isArray(value)) {
+                value.forEach(id => formData.append('habilidades_por_aprender', id));
             } else if (key === 'media') {
                 // Agregar el archivo solo si es un File
                 const file = value instanceof FileList ? value[0] : value;

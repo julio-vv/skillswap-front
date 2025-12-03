@@ -9,164 +9,277 @@ import Autocomplete from '@mui/material/Autocomplete';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import { useFormContext, Controller } from 'react-hook-form';
+import { DndContext, closestCenter } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
+import SortableChip from './components/SortableChip';
 
 // Asumimos que recibimos los datos de la API para el selector
 const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes }) => {
     // Obtener las funciones de RHF del FormProvider del componente padre
     const { control, register, formState: { errors }, setValue } = useFormContext();
 
-    // Al entrar en modo edición, asegurarnos de que el campo 'habilidades' del formulario
-    // contiene los IDs actuales del usuario para que el Autocomplete pueda preseleccionarlas.
+    // Al entrar en modo edición, precargar ambos campos del formulario con los IDs actuales.
     useEffect(() => {
-        if (isEditing && profileData?.habilidades) {
+        if (isEditing && profileData) {
             const formatted = formatProfileDataForForm(profileData);
-            setValue('habilidades', formatted.habilidades);
+            const knows = formatted.habilidades_que_se_saben ?? [];
+            const learns = formatted.habilidades_por_aprender ?? [];
+            setValue('habilidades_que_se_saben', Array.isArray(knows) ? knows : []);
+            setValue('habilidades_por_aprender', Array.isArray(learns) ? learns : []);
         }
     }, [isEditing, profileData, setValue]);
 
-    // En modo lectura mostraremos las habilidades como lista vertical.
-    // Asumimos que profileData.habilidades devuelve un array de objetos con 'id' y 'nombre_habilidad'
 
     return (
         <Card sx={{ width: '100%' }}> {/* Para asegurar que ocupa el 50% del Grid item md={6} */}
             <CardContent>
                 <Typography variant="h6" sx={{ mb: 2 }}>Habilidades y Experiencia</Typography>
 
-                {/* MODO LECTURA: Usar Stack para organizar los datos */}
+                {/* MODO LECTURA: Mostrar dos listas: saben y por aprender */}
                 {!isEditing && (
-                    <Stack spacing={2}> {/* Espaciado vertical entre secciones */}
+                    <Stack spacing={3}>
                         <Box>
-                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Habilidades:</Typography>
-                            {profileData?.habilidades && profileData.habilidades.length > 0 ? (
-                                <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
-                                    {profileData.habilidades.map((h, idx) => {
-                                        // `h` puede ser un objeto {id, nombre_habilidad} o un ID (number/string)
-                                        let skillObj = null;
-                                        if (h && typeof h === 'object') {
-                                            skillObj = h;
-                                        } else {
-                                            // Buscar en allSkills por id si disponemos de la lista completa
-                                            skillObj = allSkills?.find(s => s.id === h) || null;
-                                        }
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Habilidades que puedes enseñar</Typography>
+                            {(() => {
+                                const list = profileData?.habilidades_que_se_saben ?? [];
+                                return list && list.length > 0 ? (
+                                    <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
+                                        {list.map((h, idx) => {
+                                            let skillObj = null;
+                                            if (h && typeof h === 'object') {
+                                                skillObj = h;
+                                            } else {
+                                                skillObj = allSkills?.find(s => s.id === h) || null;
+                                            }
+                                            const label = skillObj ? (skillObj.nombre_habilidad || skillObj.nombre || String(h)) : String(h);
+                                            const key = skillObj?.id ?? `habilidad-saben-${String(h)}-${idx}`;
+                                            return (
+                                                <Typography component="li" key={key} variant="body1">{label}</Typography>
+                                            );
+                                        })}
+                                    </Stack>
+                                ) : (
+                                    <Typography variant="body1">Aún no has agregado tus habilidades para enseñar.</Typography>
+                                );
+                            })()}
+                        </Box>
 
-                                        const label = skillObj ? (skillObj.nombre_habilidad || skillObj.nombre || String(h)) : String(h);
-                                        const key = skillObj?.id ?? `habilidad-${String(h)}-${idx}`;
-
-                                        return (
-                                            <Typography component="li" key={key} variant="body1">{label}</Typography>
-                                        );
-                                    })}
-                                </Stack>
-                            ) : (
-                                <Typography variant="body1">Aún no has agregado tus habilidades.</Typography>
-                            )}
+                        <Box>
+                            <Typography variant="body1" sx={{ fontWeight: 'bold' }}>Habilidades que quieres aprender</Typography>
+                            {(() => {
+                                const list = profileData?.habilidades_por_aprender ?? [];
+                                return list && list.length > 0 ? (
+                                    <Stack component="ul" spacing={0.5} sx={{ pl: 2, m: 0 }}>
+                                        {list.map((h, idx) => {
+                                            let skillObj = null;
+                                            if (h && typeof h === 'object') {
+                                                skillObj = h;
+                                            } else {
+                                                skillObj = allSkills?.find(s => s.id === h) || null;
+                                            }
+                                            const label = skillObj ? (skillObj.nombre_habilidad || skillObj.nombre || String(h)) : String(h);
+                                            const key = skillObj?.id ?? `habilidad-aprender-${String(h)}-${idx}`;
+                                            return (
+                                                <Typography component="li" key={key} variant="body1">{label}</Typography>
+                                            );
+                                        })}
+                                    </Stack>
+                                ) : (
+                                    <Typography variant="body1">Aún no has agregado habilidades por aprender.</Typography>
+                                );
+                            })()}
                         </Box>
                     </Stack>
                 )}
 
                 {/* MODO EDICIÓN */}
                 {isEditing && (
-                    <Stack spacing={3} sx={{ mt: 1 }}>
-
-                        {/* 1. Selector de Habilidades (Múltiple, Agrupado por Tipo) */}
+                    <Stack spacing={4} sx={{ mt: 1 }}>
+                        {/* Selector: Habilidades que se saben (puede enseñar) */}
                         <Box>
-                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Habilidades que quieres mostrar</Typography>
-
+                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Habilidades que puedes enseñar</Typography>
                             <Controller
-                                name="habilidades" // Campo de RHF que guardará un array de IDs [1, 5, 10]
+                                name="habilidades_que_se_saben"
                                 control={control}
                                 render={({ field }) => {
-                                    // Fuente de verdad: siempre usar field.value en edición
                                     const currentIdsRaw = Array.isArray(field.value) ? field.value : [];
-
-                                    // Deduplicar IDs manteniendo orden (evitar chips duplicados y keys no únicas)
                                     const uniqueIdStrings = Array.from(new Set(currentIdsRaw.map(id => String(id))));
-
-                                    // Mapear esos IDs únicos a objetos completos para Autocomplete.
                                     const selectedOptions = uniqueIdStrings.map(idStr => {
-                                        // Buscar en allSkills primero (caso normal)
                                         const fromAll = allSkills?.find(s => String(s.id) === idStr || s.id == idStr);
-                                        if (fromAll) return fromAll;
-                                        // Devolver objeto mínimo
-                                        return { id: idStr, nombre_habilidad: `Habilidad ${idStr}` };
+                                        return fromAll || { id: idStr, nombre_habilidad: `Habilidad ${idStr}` };
                                     });
-
                                     return (
                                         <>
                                             <Autocomplete
                                                 multiple
-                                                options={(
-                                                    allSkills ?
-                                                        [...allSkills].sort((a, b) => {
-                                                            // Primero ordenar por grupo alfabéticamente
-                                                            const groupA = a.nombre_tipo || 'Otras';
-                                                            const groupB = b.nombre_tipo || 'Otras';
-                                                            const groupCompare = groupA.localeCompare(groupB);
-
-                                                            // Si están en el mismo grupo, ordenar por nombre de habilidad
-                                                            if (groupCompare === 0) {
-                                                                const nameA = a.nombre_habilidad || a.nombre || '';
-                                                                const nameB = b.nombre_habilidad || b.nombre || '';
-                                                                return nameA.localeCompare(nameB);
-                                                            }
-
-                                                            return groupCompare;
-                                                        }) :
-                                                        []
-                                                )}
+                                                options={(allSkills ? [...allSkills].sort((a, b) => {
+                                                    const groupA = a.nombre_tipo || 'Otras';
+                                                    const groupB = b.nombre_tipo || 'Otras';
+                                                    const groupCompare = groupA.localeCompare(groupB);
+                                                    if (groupCompare === 0) {
+                                                        const nameA = a.nombre_habilidad || a.nombre || '';
+                                                        const nameB = b.nombre_habilidad || b.nombre || '';
+                                                        return nameA.localeCompare(nameB);
+                                                    }
+                                                    return groupCompare;
+                                                }) : [])}
                                                 getOptionLabel={(option) => option.nombre_habilidad || option.nombre || ''}
                                                 isOptionEqualToValue={(option, value) => option.id === value.id}
                                                 value={selectedOptions}
-
-                                                // Cuando el valor cambia, lo mapeamos de vuelta a la lista de IDs para RHF
                                                 onChange={(event, newValue) => {
-                                                    // newValue puede contener objetos o valores primitivos
                                                     const ids = (newValue || []).map(v => (v && typeof v === 'object') ? (v.id ?? v.value ?? v.key) : v);
                                                     field.onChange(ids);
                                                 }}
-
-                                                // Agrupación por Tipo de Habilidad usando nombre_tipo directamente
                                                 groupBy={(option) => option.nombre_tipo || 'Otras'}
-
                                                 renderInput={(params) => (
                                                     <TextField
                                                         {...params}
-                                                        label="Selecciona tus habilidades"
-                                                        error={!!errors.habilidades}
-                                                        helperText={errors.habilidades?.message}
+                                                        label="Selecciona habilidades que puedes enseñar"
+                                                        error={!!errors.habilidades_que_se_saben}
+                                                        helperText={errors.habilidades_que_se_saben?.message}
                                                     />
                                                 )}
-                                                // Ocultar chips dentro del input; los mostraremos abajo
                                                 renderTags={() => null}
                                             />
+                                            {selectedOptions && selectedOptions.length > 0 ? (
+                                                <DndContext
+                                                    collisionDetection={closestCenter}
+                                                    onDragEnd={({ active, over }) => {
+                                                        if (!over || active.id === over.id) return;
+                                                        const current = Array.isArray(field.value) ? field.value : [];
+                                                        const oldIndex = current.findIndex(id => String(id) === String(active.id));
+                                                        const newIndex = current.findIndex(id => String(id) === String(over.id));
+                                                        if (oldIndex !== -1 && newIndex !== -1) {
+                                                            const reordered = arrayMove(current, oldIndex, newIndex);
+                                                            field.onChange(reordered);
+                                                        }
+                                                    }}
+                                                >
+                                                    <SortableContext
+                                                        items={selectedOptions.map(opt => String(opt.id ?? opt.value ?? opt.key))}
+                                                        strategy={verticalListSortingStrategy}
+                                                    >
+                                                        <Stack spacing={1} sx={{ mt: 1 }}>
+                                                            {selectedOptions.map((opt, idx) => {
+                                                                const idVal = opt && typeof opt === 'object' ? (opt.id ?? opt.value ?? opt.key) : opt;
+                                                                const label = opt && typeof opt === 'object'
+                                                                    ? (opt.nombre_habilidad || opt.nombre || opt.name || String(idVal))
+                                                                    : String(idVal);
+                                                                return (
+                                                                    <SortableChip
+                                                                        key={idVal != null ? `skill-saben-${idVal}` : `skill-saben-${idx}`}
+                                                                        id={String(idVal)}
+                                                                        label={label}
+                                                                        onDelete={() => {
+                                                                            const current = Array.isArray(field.value) ? field.value : [];
+                                                                            const updatedIds = current.filter(id => String(id) !== String(idVal));
+                                                                            field.onChange(updatedIds);
+                                                                        }}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </Stack>
+                                                    </SortableContext>
+                                                </DndContext>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>No hay habilidades seleccionadas.</Typography>
+                                            )}
+                                        </>
+                                    );
+                                }}
+                            />
+                        </Box>
 
-                                            {/* Lista apilada de habilidades seleccionadas con botón para eliminar */}
-                                            <Stack spacing={1} sx={{ mt: 1 }}>
-                                                {selectedOptions && selectedOptions.length > 0 ? (
-                                                    selectedOptions.map((opt, idx) => {
-                                                        const idVal = opt && typeof opt === 'object' ? (opt.id ?? opt.value ?? opt.key) : opt;
-                                                        const label = opt && typeof opt === 'object'
-                                                            ? (opt.nombre_habilidad || opt.nombre || opt.name || String(idVal))
-                                                            : String(idVal);
-
-                                                        return (
-                                                            <Chip
-                                                                key={idVal != null ? `skill-${idVal}` : `skill-${idx}`}
-                                                                label={label}
-                                                                onDelete={() => {
-                                                                    // Eliminar usando únicamente el estado de RHF
-                                                                    const current = Array.isArray(field.value) ? field.value : [];
-                                                                    const updatedIds = current.filter(id => String(id) !== String(idVal));
-                                                                    field.onChange(updatedIds);
-                                                                }}
-                                                            />
-                                                        );
-                                                    })
-                                                ) : (
-                                                    <Typography variant="body2" color="text.secondary">No hay habilidades seleccionadas.</Typography>
+                        {/* Selector: Habilidades por aprender */}
+                        <Box>
+                            <Typography variant="subtitle1" sx={{ mb: 1 }}>Habilidades que quieres aprender</Typography>
+                            <Controller
+                                name="habilidades_por_aprender"
+                                control={control}
+                                render={({ field }) => {
+                                    const currentIdsRaw = Array.isArray(field.value) ? field.value : [];
+                                    const uniqueIdStrings = Array.from(new Set(currentIdsRaw.map(id => String(id))));
+                                    const selectedOptions = uniqueIdStrings.map(idStr => {
+                                        const fromAll = allSkills?.find(s => String(s.id) === idStr || s.id == idStr);
+                                        return fromAll || { id: idStr, nombre_habilidad: `Habilidad ${idStr}` };
+                                    });
+                                    return (
+                                        <>
+                                            <Autocomplete
+                                                multiple
+                                                options={(allSkills ? [...allSkills].sort((a, b) => {
+                                                    const groupA = a.nombre_tipo || 'Otras';
+                                                    const groupB = b.nombre_tipo || 'Otras';
+                                                    const groupCompare = groupA.localeCompare(groupB);
+                                                    if (groupCompare === 0) {
+                                                        const nameA = a.nombre_habilidad || a.nombre || '';
+                                                        const nameB = b.nombre_habilidad || b.nombre || '';
+                                                        return nameA.localeCompare(nameB);
+                                                    }
+                                                    return groupCompare;
+                                                }) : [])}
+                                                getOptionLabel={(option) => option.nombre_habilidad || option.nombre || ''}
+                                                isOptionEqualToValue={(option, value) => option.id === value.id}
+                                                value={selectedOptions}
+                                                onChange={(event, newValue) => {
+                                                    const ids = (newValue || []).map(v => (v && typeof v === 'object') ? (v.id ?? v.value ?? v.key) : v);
+                                                    field.onChange(ids);
+                                                }}
+                                                groupBy={(option) => option.nombre_tipo || 'Otras'}
+                                                renderInput={(params) => (
+                                                    <TextField
+                                                        {...params}
+                                                        label="Selecciona habilidades por aprender"
+                                                        error={!!errors.habilidades_por_aprender}
+                                                        helperText={errors.habilidades_por_aprender?.message}
+                                                    />
                                                 )}
-                                            </Stack>
+                                                renderTags={() => null}
+                                            />
+                                            {selectedOptions && selectedOptions.length > 0 ? (
+                                                <DndContext
+                                                    collisionDetection={closestCenter}
+                                                    onDragEnd={({ active, over }) => {
+                                                        if (!over || active.id === over.id) return;
+                                                        const current = Array.isArray(field.value) ? field.value : [];
+                                                        const oldIndex = current.findIndex(id => String(id) === String(active.id));
+                                                        const newIndex = current.findIndex(id => String(id) === String(over.id));
+                                                        if (oldIndex !== -1 && newIndex !== -1) {
+                                                            const reordered = arrayMove(current, oldIndex, newIndex);
+                                                            field.onChange(reordered);
+                                                        }
+                                                    }}
+                                                >
+                                                    <SortableContext
+                                                        items={selectedOptions.map(opt => String(opt.id ?? opt.value ?? opt.key))}
+                                                        strategy={verticalListSortingStrategy}
+                                                    >
+                                                        <Stack spacing={1} sx={{ mt: 1 }}>
+                                                            {selectedOptions.map((opt, idx) => {
+                                                                const idVal = opt && typeof opt === 'object' ? (opt.id ?? opt.value ?? opt.key) : opt;
+                                                                const label = opt && typeof opt === 'object'
+                                                                    ? (opt.nombre_habilidad || opt.nombre || opt.name || String(idVal))
+                                                                    : String(idVal);
+                                                                return (
+                                                                    <SortableChip
+                                                                        key={idVal != null ? `skill-aprender-${idVal}` : `skill-aprender-${idx}`}
+                                                                        id={String(idVal)}
+                                                                        label={label}
+                                                                        onDelete={() => {
+                                                                            const current = Array.isArray(field.value) ? field.value : [];
+                                                                            const updatedIds = current.filter(id => String(id) !== String(idVal));
+                                                                            field.onChange(updatedIds);
+                                                                        }}
+                                                                    />
+                                                                );
+                                                            })}
+                                                        </Stack>
+                                                    </SortableContext>
+                                                </DndContext>
+                                            ) : (
+                                                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>No hay habilidades seleccionadas.</Typography>
+                                            )}
                                         </>
                                     );
                                 }}

@@ -22,19 +22,14 @@ export const profileSchema = z.object({
         .optional()
         .or(z.literal('')),
 
-    year: z.number()
-        .int("Debe ser un número entero.")
-        .min(0, "El año no puede ser negativo.")
-        .max(100, "El año debe ser menor a 100.")
-        .optional(),
-
-    habilidades: z.array(z.number().int().positive())
-        .optional(),
+    // Listas de habilidades
+    habilidades_que_se_saben: z.array(z.number().int().positive()).optional(),
+    habilidades_por_aprender: z.array(z.number().int().positive()).optional(),
 
     // Campos de solo lectura
     email: z.string().email().optional(),
     
-    // Campo de imagen con validación mejorada
+    // Campo de imagen con validación
     media: z.union([
         z.string().url().optional(), // URL existente
         z.instanceof(FileList)

@@ -13,9 +13,10 @@ export function formatProfileDataForForm(userData) {
         apellido: userData.apellido || '',
         year: userData.year || 0,
         telefono: userData.telefono || '',
-        habilidades: userData.habilidades 
-            ? userData.habilidades.map(h => typeof h === 'object' ? h.id : h) 
-            : [],
+        habilidades_que_se_saben: (userData.habilidades_que_se_saben ?? [])
+            .map(h => typeof h === 'object' ? h.id : h),
+        habilidades_por_aprender: (userData.habilidades_por_aprender ?? [])
+            .map(h => typeof h === 'object' ? h.id : h),
         email: userData.email || '',
         media: userData.media || '',
     };
