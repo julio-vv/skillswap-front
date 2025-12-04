@@ -12,6 +12,7 @@ export const USUARIOS = {
   buscar: (q, page = 1) => `usuarios/buscar/?q=${encodeURIComponent(q)}&page=${page}`,
   detalle: (id) => `usuarios/${id}/`,
   me: 'usuarios/me/',
+  coincidencias: 'usuarios/coincidencias/',
 };
 
 export const HABILIDADES = 'habilidades/';
