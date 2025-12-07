@@ -126,10 +126,24 @@ export const useConversations = () => {
 
     /**
      * Crea o obtiene una conversación con un usuario específico
+     * Primero verifica si ya existe, si no, la crea
      */
     const getOrCreateConversation = useCallback(async (userId) => {
         try {
-            // Intentar crear una conversación (el backend debería retornar la existente si ya existe)
+            // Primero intentar obtener conversaciones existentes
+            const conversationsResponse = await axiosInstance.get('/chat/conversaciones/');
+            const existingConversation = conversationsResponse.data.find(conv => {
+                // Buscar una conversación donde el otro participante es el userId buscado
+                return conv.participantes && conv.participantes.includes(userId);
+            });
+
+            if (existingConversation) {
+                console.log(`[Chat] Conversación existente encontrada con usuario ${userId}: ${existingConversation.id}`);
+                return existingConversation;
+            }
+
+            // Si no existe, crear una nueva conversación
+            console.log(`[Chat] Creando nueva conversación con usuario ${userId}`);
             const response = await axiosInstance.post('/chat/conversaciones/', {
                 participantes: [userId]
             });
