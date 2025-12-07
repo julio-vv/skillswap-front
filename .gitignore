@@ -29,7 +29,7 @@ Thumbs.db
 *.njsproj
 *.sln
 *.sw?
-.github/*
+.github/prompts/*
 
 # Binaries
 *.exe
