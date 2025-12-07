@@ -203,16 +203,16 @@ const NotificationsPage = () => {
 
             {/* Sección de Notificaciones Generales */}
             <Typography variant="h5" gutterBottom fontWeight="600" sx={{ mt: 3, mb: 2 }}>
-                Historial de Notificaciones
+                Notificaciones Activas
             </Typography>
 
             {visibleNotifications.length === 0 && requests.length === 0 ? (
                 <Paper sx={{ p: 6, textAlign: 'center', mt: 3 }}>
                     <Typography variant="h6" color="text.secondary" gutterBottom>
-                        No tienes notificaciones nuevas
+                        No tienes notificaciones activas
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                        Las notificaciones sobre solicitudes de match y aceptaciones aparecerán aquí
+                        Las nuevas solicitudes de match aparecerán aquí.
                     </Typography>
                 </Paper>
             ) : (
