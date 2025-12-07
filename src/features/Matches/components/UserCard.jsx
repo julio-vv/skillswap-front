@@ -10,8 +10,10 @@ import Chip from '@mui/material/Chip';
 import { normalizeSkillName } from '../utils/skillHelpers';
 import { MATCH_TYPE_LABELS } from '../constants/matchConstants';
 
-function UserCard({ user, habilidades, tipo, onClick }) {
-    const habilidadesLegibles = (habilidades || []).map(normalizeSkillName);
+function UserCard({ user, habilidadesOfrecer, habilidadesBuscar, tipo, onClick }) {
+    const habilidadesOfrecerLegibles = (habilidadesOfrecer || []).map(normalizeSkillName);
+    const habilidadesBuscarLegibles = (habilidadesBuscar || []).map(normalizeSkillName);
+    const isMutual = tipo === 'mutual' && habilidadesBuscar;
     
     return (
         <Card 
@@ -28,9 +30,9 @@ function UserCard({ user, habilidades, tipo, onClick }) {
             onClick={() => onClick && onClick(user.id)}
         >
             <CardContent>
-                <Grid container spacing={2} alignItems="center">
+                <Grid container spacing={2} alignItems="flex-start">
                     {/* Columna 1: Avatar + datos */}
-                    <Grid size={{ xs: 12, md: 7 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                    <Grid size={{ xs: 12, md: isMutual ? 4 : 7 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                         <Avatar 
                             src={user.media}
                             alt={user.nombre}
@@ -52,24 +54,68 @@ function UserCard({ user, habilidades, tipo, onClick }) {
                             </Typography>
                         </Box>
                     </Grid>
-                    {/* Columna 2: Habilidades */}
-                    <Grid size={{ xs: 12, md: 5 }}>
-                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                            {MATCH_TYPE_LABELS[tipo]}
-                        </Typography>
-                        {habilidadesLegibles.length > 0 ? (
-                            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                {habilidadesLegibles.slice(0, 5).map((nombre, idx) => (
-                                    <Chip key={idx} label={nombre} size="small" variant="outlined" />
-                                ))}
-                                {habilidadesLegibles.length > 5 && (
-                                    <Chip label={`+${habilidadesLegibles.length - 5}`} size="small" variant="outlined" />
+                    
+                    {/* Si es mutua: mostrar dos columnas de habilidades */}
+                    {isMutual ? (
+                        <>
+                            {/* Columna 2: Habilidades que ofrece (puede enseñar) */}
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    Puede enseñarte
+                                </Typography>
+                                {habilidadesOfrecerLegibles.length > 0 ? (
+                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                        {habilidadesOfrecerLegibles.slice(0, 4).map((nombre, idx) => (
+                                            <Chip key={idx} label={nombre} size="small" variant="outlined" />
+                                        ))}
+                                        {habilidadesOfrecerLegibles.length > 4 && (
+                                            <Chip label={`+${habilidadesOfrecerLegibles.length - 4}`} size="small" variant="outlined" />
+                                        )}
+                                    </Stack>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">Sin datos</Typography>
                                 )}
-                            </Stack>
-                        ) : (
-                            <Typography variant="body2" color="text.secondary">Sin datos</Typography>
-                        )}
-                    </Grid>
+                            </Grid>
+                            
+                            {/* Columna 3: Habilidades que busca (quiere aprender) */}
+                            <Grid size={{ xs: 12, md: 4 }}>
+                                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                    Quiere aprender
+                                </Typography>
+                                {habilidadesBuscarLegibles.length > 0 ? (
+                                    <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                        {habilidadesBuscarLegibles.slice(0, 4).map((nombre, idx) => (
+                                            <Chip key={idx} label={nombre} size="small" variant="outlined" color="secondary" />
+                                        ))}
+                                        {habilidadesBuscarLegibles.length > 4 && (
+                                            <Chip label={`+${habilidadesBuscarLegibles.length - 4}`} size="small" variant="outlined" color="secondary" />
+                                        )}
+                                    </Stack>
+                                ) : (
+                                    <Typography variant="body2" color="text.secondary">Sin datos</Typography>
+                                )}
+                            </Grid>
+                        </>
+                    ) : (
+                        /* Si no es mutua: mostrar una sola columna */
+                        <Grid size={{ xs: 12, md: 5 }}>
+                            <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
+                                {MATCH_TYPE_LABELS[tipo]}
+                            </Typography>
+                            {habilidadesOfrecerLegibles.length > 0 ? (
+                                <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                                    {habilidadesOfrecerLegibles.slice(0, 5).map((nombre, idx) => (
+                                        <Chip key={idx} label={nombre} size="small" variant="outlined" />
+                                    ))}
+                                    {habilidadesOfrecerLegibles.length > 5 && (
+                                        <Chip label={`+${habilidadesOfrecerLegibles.length - 5}`} size="small" variant="outlined" />
+                                    )}
+                                </Stack>
+                            ) : (
+                                <Typography variant="body2" color="text.secondary">Sin datos</Typography>
+                            )}
+                        </Grid>
+                    )}
                 </Grid>
             </CardContent>
         </Card>

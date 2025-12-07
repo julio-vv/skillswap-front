@@ -1,5 +1,4 @@
 // Utilidad para formatear los datos del perfil para react-hook-form
-// filepath: c:\Proyectos\SkillSwap-front\src\utils\formatProfileDataForForm.js
 
 /**
  * Formatea los datos del usuario para usarlos como defaultValues en react-hook-form

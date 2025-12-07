@@ -5,6 +5,7 @@ import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './features/Auth/AuthContext.jsx'
 import { ToastProvider } from './context/ToastContext.jsx'
+import { NotificationsProvider } from './context/NotificationsContext.jsx'
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -18,19 +19,21 @@ createRoot(document.getElementById('root')).render(
       <CssBaseline />
       <ErrorBoundary>
         <ToastProvider>
-          <BrowserRouter>
-            <AuthProvider>
-              <Suspense
-                fallback={
-                  <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
-                    <CircularProgress />
-                  </Box>
-                }
-              >
-                <App />
-              </Suspense>
-            </AuthProvider>
-          </BrowserRouter>
+          <NotificationsProvider>
+            <BrowserRouter>
+              <AuthProvider>
+                <Suspense
+                  fallback={
+                    <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
+                      <CircularProgress />
+                    </Box>
+                  }
+                >
+                  <App />
+                </Suspense>
+              </AuthProvider>
+            </BrowserRouter>
+          </NotificationsProvider>
         </ToastProvider>
       </ErrorBoundary>
     </ThemeProvider>

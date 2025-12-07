@@ -21,7 +21,8 @@ function MatchSection({ tipo, users, hasMore, onLoadMore, onUserClick, fullWidth
                             <Grid size={{ xs: 12 }} key={user.id || idx}>
                                 <UserCard 
                                     user={user} 
-                                    habilidades={tipo === 'mutual' ? user.puede_ensenar.concat(user.puede_aprender) : user[tipo === 'teach' ? 'puede_ensenar' : 'puede_aprender']} 
+                                    habilidadesOfrecer={tipo === 'mutual' ? user.puede_ensenar : user[tipo === 'teach' ? 'puede_ensenar' : 'puede_aprender']}
+                                    habilidadesBuscar={tipo === 'mutual' ? user.puede_aprender : undefined}
                                     tipo={tipo} 
                                     onClick={onUserClick} 
                                 />
@@ -33,7 +34,8 @@ function MatchSection({ tipo, users, hasMore, onLoadMore, onUserClick, fullWidth
                         <UserCard 
                             key={user.id || idx}
                             user={user} 
-                            habilidades={user[tipo === 'teach' ? 'puede_ensenar' : 'puede_aprender']} 
+                            habilidadesOfrecer={tipo === 'mutual' ? user.puede_ensenar : user[tipo === 'teach' ? 'puede_ensenar' : 'puede_aprender']}
+                            habilidadesBuscar={tipo === 'mutual' ? user.puede_aprender : undefined}
                             tipo={tipo} 
                             onClick={onUserClick} 
                         />
