@@ -17,6 +17,7 @@ import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';
 import { useNotifications } from '../features/Notifications/hooks/useNotifications';
+import { useConversations } from '../features/Chat/hooks/useConversations';
 import { useToast } from '../context/ToastContext';
 // axiosInstance se cargará dinámicamente sólo cuando se use logout
 import { AUTH } from '../constants/apiEndpoints';
@@ -26,9 +27,10 @@ const Header = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
     const { unreadCount } = useNotifications();
+    // Modo ligero: solo para badge y sin polling extra
+    const { totalUnread } = useConversations({ light: true, enablePolling: false });
     const { showToast } = useToast();
-    // TODO: Debuggear useConversations
-    const unreadMessages = 0;
+    const unreadMessages = totalUnread;
 
     const handleLogout = async () => {
         try {

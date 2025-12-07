@@ -9,7 +9,8 @@ import { CHAT, AUTH, HABILIDADES, USUARIOS } from '../../../constants/apiEndpoin
  * - POST /chat/conversaciones/ : Crea una conversación
  * - GET /chat/conversaciones/{id}/mensajes/ : Obtiene mensajes de una conversación
  */
-export const useConversations = () => {
+export const useConversations = (options = {}) => {
+    const { light = false, enablePolling = true } = options;
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,58 +39,67 @@ export const useConversations = () => {
             const response = await axiosInstance.get(CHAT.conversaciones);
             const conversationsData = response.data;
 
-            // Obtener usuario autenticado para filtrar participantes
-            const authResponse = await axiosInstance.get(AUTH.USER);
-            const currentUserId = authResponse.data.id;
+            let expandedConversations = conversationsData;
 
-            // Obtener habilidades para expandir datos
-            const skillsResponse = await axiosInstance.get(HABILIDADES);
-            const skillsMap = skillsResponse.data.reduce((acc, skill) => {
-                acc[skill.id] = skill.nombre_habilidad;
-                return acc;
-            }, {});
+            if (!light) {
+                // Obtener usuario autenticado para filtrar participantes
+                const authResponse = await axiosInstance.get(AUTH.USER);
+                const currentUserId = authResponse.data.id;
 
-            // Obtener datos de los usuarios de los participantes
-            const userIds = new Set();
-            conversationsData.forEach(conv => {
-                conv.participantes?.forEach(participantId => {
-                    if (participantId !== currentUserId) {
-                        userIds.add(participantId);
-                    }
+                // Obtener habilidades para expandir datos
+                const skillsResponse = await axiosInstance.get(HABILIDADES);
+                const skillsMap = skillsResponse.data.reduce((acc, skill) => {
+                    acc[skill.id] = skill.nombre_habilidad;
+                    return acc;
+                }, {});
+
+                // Obtener datos de los usuarios de los participantes
+                const userIds = new Set();
+                conversationsData.forEach(conv => {
+                    conv.participantes?.forEach(participantId => {
+                        if (participantId !== currentUserId) {
+                            userIds.add(participantId);
+                        }
+                    });
                 });
-            });
 
-            const usersMap = {};
-            if (userIds.size > 0) {
-                // Obtener datos de cada usuario
-                for (const userId of userIds) {
-                    try {
-                        const userResponse = await axiosInstance.get(USUARIOS.detalle(userId));
-                        usersMap[userId] = userResponse.data;
-                    } catch (err) {
-                        console.error(`Error fetching user ${userId}:`, err);
-                        usersMap[userId] = { id: userId, nombre: 'Usuario', apellido: 'Desconocido' };
+                const usersMap = {};
+                if (userIds.size > 0) {
+                    for (const userId of userIds) {
+                        try {
+                            const userResponse = await axiosInstance.get(USUARIOS.detalle(userId));
+                            usersMap[userId] = userResponse.data;
+                        } catch (err) {
+                            console.error(`Error fetching user ${userId}:`, err);
+                            usersMap[userId] = { id: userId, nombre: 'Usuario', apellido: 'Desconocido' };
+                        }
                     }
                 }
-            }
 
-            // Expandir datos de conversaciones
-            const expandedConversations = conversationsData.map(conv => {
-                // Encontrar el otro participante (no el usuario actual)
-                const otherParticipantId = conv.participantes?.find(p => p !== currentUserId);
-                const otherUser = usersMap[otherParticipantId] || { 
-                    id: otherParticipantId, 
-                    nombre: 'Usuario',
-                    apellido: 'Desconocido'
-                };
+                expandedConversations = conversationsData.map(conv => {
+                    const otherParticipantId = conv.participantes?.find(p => p !== currentUserId);
+                    const otherUser = usersMap[otherParticipantId] || { 
+                        id: otherParticipantId, 
+                        nombre: 'Usuario',
+                        apellido: 'Desconocido'
+                    };
 
-                return {
+                    return {
+                        ...conv,
+                        otherUser,
+                        unreadCount: conv.mensajes_no_leidos || 0,
+                        actualizado_en: conv.fecha_actualizacion || conv.actualizado_en,
+                        skillsMap
+                    };
+                });
+            } else {
+                // Modo ligero: solo lo necesario para badges (unreadCount y timestamps)
+                expandedConversations = conversationsData.map(conv => ({
                     ...conv,
-                    otherUser,
                     unreadCount: conv.mensajes_no_leidos || 0,
                     actualizado_en: conv.fecha_actualizacion || conv.actualizado_en
-                };
-            });
+                }));
+            }
 
             // Ordenar por última actualización
             expandedConversations.sort((a, b) => 
@@ -192,14 +202,15 @@ export const useConversations = () => {
         }
     }, []);
 
-    // Polling cada 120 segundos; pausa cuando la pestaña está oculta
+    // Polling cada 120 segundos; se puede desactivar y se pausa cuando la pestaña está oculta
     useEffect(() => {
+        if (!enablePolling) return undefined;
+
         let intervalId = null;
 
         const startPolling = () => {
             if (intervalId) return;
             intervalId = setInterval(() => {
-                // Solo refrescar si la pestaña está visible
                 if (!document.hidden) {
                     fetchConversations(true); // true = silent mode
                 }
@@ -217,13 +228,11 @@ export const useConversations = () => {
             if (document.hidden) {
                 stopPolling();
             } else {
-                // Hacer un fetch inmediato al volver y reanudar
                 fetchConversations(true);
                 startPolling();
             }
         };
 
-        // Iniciar polling sólo si la pestaña está visible
         if (!document.hidden) {
             startPolling();
         }
@@ -234,7 +243,7 @@ export const useConversations = () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             stopPolling();
         };
-    }, [fetchConversations]);
+    }, [enablePolling, fetchConversations]);
 
     return {
         conversations,
