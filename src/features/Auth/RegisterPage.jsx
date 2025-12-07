@@ -58,6 +58,7 @@ const RegisterPage = () => {
         minLength: password1Value.length >= 8,
         hasNumber: /\d/.test(password1Value),
         hasLetter: /[a-zA-Z]/.test(password1Value),
+        hasUpperCase: /[A-Z]/.test(password1Value),
         notSimilarToEmail: emailValue && password1Value ? 
             !password1Value.toLowerCase().includes(emailValue.split('@')[0].toLowerCase()) &&
             !emailValue.toLowerCase().includes(password1Value.toLowerCase()) : true
@@ -187,6 +188,14 @@ const RegisterPage = () => {
                                         <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
                                     <Typography variant="caption" color={passwordRequirements.hasLetter ? 'success.main' : 'text.secondary'} noWrap>
                                         Al menos una letra
+                                    </Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                    {passwordRequirements.hasUpperCase ? 
+                                        <CheckCircleIcon sx={{ fontSize: 16, color: 'success.main', flexShrink: 0 }} /> : 
+                                        <CancelIcon sx={{ fontSize: 16, color: 'error.main', flexShrink: 0 }} />}
+                                    <Typography variant="caption" color={passwordRequirements.hasUpperCase ? 'success.main' : 'text.secondary'} noWrap>
+                                        Al menos una mayúscula
                                     </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
