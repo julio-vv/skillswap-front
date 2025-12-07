@@ -52,6 +52,25 @@ export const NotificationsProvider = ({ children }) => {
     });
     
     const isMountedRef = useRef(true);
+    const intervalRef = useRef(null);
+
+    const fetchNotifications = useCallback(async (silent = false) => {
+        try {
+            if (!silent) {
+                dispatch({ type: 'SET_ERROR', payload: null });
+            }
+            const response = await axiosInstance.get(NOTIFICACIONES.listar);
+            const data = response.data || [];
+            if (isMountedRef.current) {
+                dispatch({ type: 'SET_NOTIFICATIONS', payload: data });
+            }
+        } catch (err) {
+            if (isMountedRef.current && !silent) {
+                dispatch({ type: 'SET_ERROR', payload: 'Error al cargar notificaciones' });
+            }
+            console.error('Error fetching notifications:', err);
+        }
+    }, []);
 
     /**
      * Marca una notificación como leída
@@ -95,10 +114,46 @@ export const NotificationsProvider = ({ children }) => {
      * Cleanup
      */
     useEffect(() => {
+        // Carga inicial
+        fetchNotifications();
+
+        const startPolling = () => {
+            if (intervalRef.current) return;
+            intervalRef.current = setInterval(() => {
+                if (!document.hidden) {
+                    fetchNotifications(true);
+                }
+            }, 120000); // 120s
+        };
+
+        const stopPolling = () => {
+            if (intervalRef.current) {
+                clearInterval(intervalRef.current);
+                intervalRef.current = null;
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                fetchNotifications(true);
+                startPolling();
+            }
+        };
+
+        if (!document.hidden) {
+            startPolling();
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
         return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            stopPolling();
             isMountedRef.current = false;
         };
-    }, []);
+    }, [fetchNotifications]);
 
     const value = {
         notifications: state.notifications,
@@ -106,6 +161,7 @@ export const NotificationsProvider = ({ children }) => {
         error: state.error,
         markAsRead,
         hideNotification,
+        fetchNotifications,
     };
 
     return (
