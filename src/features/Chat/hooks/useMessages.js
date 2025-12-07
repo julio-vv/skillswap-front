@@ -1,6 +1,34 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { EventSourcePolyfill } from 'event-source-polyfill';
 import axiosInstance from '../../../api/axiosInstance';
 import { CHAT, AUTH } from '../../../constants/apiEndpoints';
+
+const resolveApiBaseUrl = () => {
+    const base = axiosInstance.defaults.baseURL || import.meta.env.VITE_API_URL || '/';
+    const normalizedBase = base.endsWith('/') ? base : `${base}/`;
+    try {
+        // Soporta bases relativas (ej: "/api/") y absolutas
+        return new URL(normalizedBase, window.location.origin).toString();
+    } catch (err) {
+        console.warn('[SSE] Base URL inválida, usando origin', err);
+        return window.location.origin;
+    }
+};
+
+const addOrUpdateMessage = (messages, incoming) => {
+    const idx = messages.findIndex((m) => m.id === incoming.id);
+    if (idx !== -1) {
+        const next = [...messages];
+        next[idx] = { ...next[idx], ...incoming };
+        return next;
+    }
+    const next = [...messages, incoming];
+    return next.sort((a, b) => {
+        const dateA = a.fecha ? new Date(a.fecha) : new Date(0);
+        const dateB = b.fecha ? new Date(b.fecha) : new Date(0);
+        return dateA - dateB;
+    });
+};
 
 /**
  * Hook para gestionar mensajes de una conversación específica
@@ -25,6 +53,7 @@ export const useMessages = (conversationId, onError) => {
     const reconnectTimeoutRef = useRef(null);
     const pollingIntervalRef = useRef(null);
     const isInitialLoadRef = useRef(false);
+    const apiBaseUrlRef = useRef(resolveApiBaseUrl());
 
     /**
      * Obtiene los mensajes iniciales de la conversación
@@ -102,7 +131,7 @@ export const useMessages = (conversationId, onError) => {
             };
 
             // Agregar el mensaje a la lista local inmediatamente
-            setMessages(prev => [...prev, normalizedMessage]);
+            setMessages(prev => addOrUpdateMessage(prev, normalizedMessage));
 
             return normalizedMessage;
         } catch (err) {
@@ -133,10 +162,23 @@ export const useMessages = (conversationId, onError) => {
 
         try {
             console.log(`[SSE] Conectando a stream con last_id=${lastMessageIdRef.current}`);
-            
-            // Crear nueva conexión SSE
-            const url = `/chat/conversaciones/${conversationId}/stream/?last_id=${lastMessageIdRef.current}`;
-            eventSourceRef.current = new EventSource(url);
+
+            // Obtener token para autorización en SSE
+            const token = localStorage.getItem('skillswap_token');
+            if (!token) {
+                console.warn('[SSE] No hay token disponible, deshabilitando SSE');
+                setUseSSE(false);
+                return;
+            }
+
+            // Crear nueva conexión SSE con encabezado Authorization
+            const streamPath = CHAT.stream(conversationId, lastMessageIdRef.current);
+            const streamUrl = new URL(streamPath, apiBaseUrlRef.current).toString();
+
+            eventSourceRef.current = new EventSourcePolyfill(streamUrl, {
+                headers: { Authorization: `Token ${token}` },
+                withCredentials: true,
+            });
 
             eventSourceRef.current.onmessage = (event) => {
                 try {
@@ -150,7 +192,7 @@ export const useMessages = (conversationId, onError) => {
                     };
 
                     // Agregar mensaje a la lista
-                    setMessages(prev => [...prev, normalizedMsg]);
+                    setMessages(prev => addOrUpdateMessage(prev, normalizedMsg));
                     
                     // Actualizar last_id para próxima reconexión
                     lastMessageIdRef.current = msg.id;
@@ -201,14 +243,13 @@ export const useMessages = (conversationId, onError) => {
                     return dateA - dateB;
                 });
 
-                // Actualizar solo si hay mensajes nuevos
+                // Combinar mensajes nuevos evitando duplicados
                 setMessages(prevMessages => {
-                    const prevLastId = prevMessages[prevMessages.length - 1]?.id;
-                    const newLastId = sortedMessages[sortedMessages.length - 1]?.id;
-                    if (prevLastId !== newLastId) {
-                        return sortedMessages;
-                    }
-                    return prevMessages;
+                    let merged = prevMessages;
+                    sortedMessages.forEach((msg) => {
+                        merged = addOrUpdateMessage(merged, msg);
+                    });
+                    return merged;
                 });
             } catch (err) {
                 console.error('[POLLING] Error al obtener mensajes:', err);
