@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
       <ErrorBoundary>
         <ToastProvider>
           <NotificationsProvider>
-            <BrowserRouter>
+            <BrowserRouter basename="/skillswap-front">
               <AuthProvider>
                 <Suspense
                   fallback={
