@@ -1,6 +1,6 @@
 import { StrictMode, Suspense } from 'react'
 import { createRoot } from 'react-dom/client'
-import { HashRouter } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './features/Auth/AuthContext.jsx'
@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
       <ErrorBoundary>
         <ToastProvider>
           <NotificationsProvider>
-            <HashRouter>
+            <BrowserRouter>
               <AuthProvider>
                 <Suspense
                   fallback={
@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')).render(
                   <App />
                 </Suspense>
               </AuthProvider>
-            </HashRouter>
+            </BrowserRouter>
           </NotificationsProvider>
         </ToastProvider>
       </ErrorBoundary>
