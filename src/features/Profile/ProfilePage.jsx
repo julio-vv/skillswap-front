@@ -5,10 +5,14 @@ import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
+import { ROUTES } from '../../constants/routePaths';
 import { profileSchema } from '../../schemas/profileSchema';
 import { useAuth } from '../Auth/AuthContext';
 import { useProfileData } from '../../hooks/useProfileData';
+import { useProfileActions } from '../../hooks/useProfileActions';
+import { useMatchRequests } from '../Notifications/hooks/useMatchRequests';
+import { useToast } from '../../context/ToastContext';
 import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
 
 import ProfileHeader from './components/ProfileHeader';
@@ -20,8 +24,11 @@ import ProfileCardReseñas from './ProfileCardReseñas';
 
 const ProfilePage = () => {
     const { id: urlUserId } = useParams();
+    const navigate = useNavigate();
     const { logout, user } = useAuth();
+    const { showToast } = useToast();
     const [isEditing, setIsEditing] = useState(false);
+    const { sendRequest, acceptRequest, rejectRequest, requests, actionLoading } = useMatchRequests();
     
     // Usar el hook personalizado para manejar datos de perfil
     const {
@@ -32,7 +39,19 @@ const ProfilePage = () => {
         skillTypes,
         updateProfile,
         clearError,
+        fetchProfile,
     } = useProfileData(urlUserId);
+
+    // Hook para acciones de match/chat/remove
+    const {
+        matchStatus,
+        pendingRequestId,
+        updateMatchStatus,
+        handleStartChat,
+        handleRemoveFriend,
+        setMatchStatus,
+        setPendingRequestId,
+    } = useProfileActions(urlUserId, user, fetchProfile);
 
     // Determinar si estamos viendo nuestro propio perfil
     const isOwnProfile = !urlUserId || (user && String(user.id) === String(urlUserId));
@@ -60,6 +79,57 @@ const ProfilePage = () => {
             reset(formatProfileDataForForm(profileData));
         }
     }, [profileData, reset]);
+
+    // Actualizar match status cuando hay cambios en datos o requests
+    useEffect(() => {
+        if (profileData && !isOwnProfile) {
+            updateMatchStatus(profileData, requests);
+        }
+    }, [profileData, requests, isOwnProfile, updateMatchStatus]);
+
+    // Manejar aceptación de solicitud desde el perfil
+    const handleAcceptRequest = async () => {
+        if (!pendingRequestId) return;
+        
+        const result = await acceptRequest(pendingRequestId);
+        
+        if (result.success) {
+            setMatchStatus('matched');
+            setPendingRequestId(null);
+            showToast('¡Match aceptado! Ahora pueden chatear', 'success');
+        } else {
+            showToast(result.error || 'Error al aceptar solicitud', 'error');
+        }
+    };
+
+    // Manejar rechazo de solicitud desde el perfil
+    const handleRejectRequest = async () => {
+        if (!pendingRequestId) return;
+        
+        const result = await rejectRequest(pendingRequestId);
+        
+        if (result.success) {
+            setMatchStatus(null);
+            setPendingRequestId(null);
+            showToast('Solicitud rechazada', 'info');
+        } else {
+            showToast(result.error || 'Error al rechazar solicitud', 'error');
+        }
+    };
+
+    // Manejar envío de solicitud de match
+    const handleSendMatchRequest = async () => {
+        if (!urlUserId) return;
+        
+        const result = await sendRequest(parseInt(urlUserId));
+        
+        if (result.success) {
+            setMatchStatus('pending');
+            showToast('¡Solicitud enviada! Espera a que la acepten', 'success');
+        } else {
+            showToast(result.error || 'Error al enviar solicitud', 'error');
+        }
+    };
 
     // Manejar envío del formulario
     const onSubmit = async (data) => {
@@ -97,6 +167,13 @@ const ProfilePage = () => {
                     isOwnProfile={isOwnProfile}
                     isEditing={isEditing}
                     onEdit={() => setIsEditing(true)}
+                    onSendMatchRequest={!isOwnProfile ? handleSendMatchRequest : undefined}
+                    onAcceptRequest={!isOwnProfile ? handleAcceptRequest : undefined}
+                    onRejectRequest={!isOwnProfile ? handleRejectRequest : undefined}
+                    onStartChat={!isOwnProfile ? handleStartChat : undefined}
+                    onRemoveFriend={!isOwnProfile ? handleRemoveFriend : undefined}
+                    matchStatus={matchStatus}
+                    isSendingRequest={actionLoading !== null}
                 />
 
                 {profileError && <Alert severity="error" sx={{ mb: 2 }}>{profileError}</Alert>}
@@ -130,6 +207,7 @@ const ProfilePage = () => {
                         <ProfileCardReseñas profileData={profileData}/>
                     </Grid>
                 </Grid>
+
             </Container>
         </Box>
     );

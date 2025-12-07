@@ -6,13 +6,17 @@ import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Stack from '@mui/material/Stack';
+import Badge from '@mui/material/Badge';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import PersonIcon from '@mui/icons-material/Person';
 import SearchIcon from '@mui/icons-material/Search';
 import HomeIcon from '@mui/icons-material/Home';
+import PeopleIcon from '@mui/icons-material/People';
+import ChatIcon from '@mui/icons-material/Chat';
 import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';
+import { useNotifications } from '../features/Notifications/hooks/useNotifications';
 // axiosInstance se cargará dinámicamente sólo cuando se use logout
 import { AUTH } from '../constants/apiEndpoints';
 import { ROUTES } from '../constants/routePaths';
@@ -20,6 +24,9 @@ import { ROUTES } from '../constants/routePaths';
 const Header = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
+    const { unreadCount } = useNotifications();
+    // TODO: Debuggear useConversations
+    const unreadMessages = 0;
 
     const handleLogout = async () => {
         try {
@@ -89,7 +96,29 @@ const Header = () => {
                         onClick={() => navigate(ROUTES.NOTIFICATIONS)}
                         aria-label="Ver notificaciones"
                     >
-                        <NotificationsIcon />
+                        <Badge badgeContent={unreadCount} color="error">
+                            <NotificationsIcon />
+                        </Badge>
+                    </IconButton>
+
+                    {/* Botón de Amigos */}
+                    <IconButton 
+                        color="primary" 
+                        onClick={() => navigate(ROUTES.FRIENDS)}
+                        aria-label="Ver amigos"
+                    >
+                        <PeopleIcon />
+                    </IconButton>
+
+                    {/* Botón de Chat */}
+                    <IconButton 
+                        color="primary" 
+                        onClick={() => navigate(ROUTES.CHAT)}
+                        aria-label="Ver chat"
+                    >
+                        <Badge badgeContent={unreadMessages} color="error">
+                            <ChatIcon />
+                        </Badge>
                     </IconButton>
 
                     {/* Botón de Perfil */}

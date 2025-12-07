@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import CircularProgress from '@mui/material/CircularProgress';
 import MenuItem from '@mui/material/MenuItem';
@@ -24,6 +23,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod'; // Necesario para usar Zod con RHF
 // import axiosInstance from '../../api/axiosInstance';
 import axiosPublic from '../../api/axiosPublic';
+import { useToast } from '../../context/ToastContext';
 import { registerSchema } from '../../schemas/authSchema'; // Importamos el esquema Zod
 import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMessages';
 import { AUTH } from '../../constants/apiEndpoints';
@@ -32,9 +32,9 @@ import { ROUTES } from '../../constants/routePaths';
 const RegisterPage = () => {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [showPassword1, setShowPassword1] = useState(false);
     const [showPassword2, setShowPassword2] = useState(false);
+    const { showToast } = useToast();
 
     // 1. Configurar React Hook Form con Zod Resolver
     const { register, handleSubmit, watch, formState: { errors } } = useForm({
@@ -65,7 +65,6 @@ const RegisterPage = () => {
 
     const onSubmit = async (data) => {
         setLoading(true);
-        setError('');
 
         try {
             // Llama al endpoint POST /auth/registration/
@@ -91,11 +90,11 @@ const RegisterPage = () => {
             // Manejo de errores centralizado
             if (err.response?.data) {
                 const msg = extractApiErrorMessage(err.response.data);
-                setError(msg || ERROR_MESSAGES.unexpected);
+                showToast(msg || ERROR_MESSAGES.unexpected, 'error');
             } else if (err.request) {
-                setError(ERROR_MESSAGES.network);
+                showToast(ERROR_MESSAGES.network, 'error');
             } else {
-                setError(err.message || ERROR_MESSAGES.unexpected);
+                showToast(err.message || ERROR_MESSAGES.unexpected, 'error');
             }
         }
     };
@@ -106,8 +105,6 @@ const RegisterPage = () => {
                 <Typography component="h1" variant="h5" gutterBottom>
                     Regístrate en Skill Swap
                 </Typography>
-
-                {error && <Alert severity="error" sx={{ width: '100%', mt: 2, mb: 2 }}>{error}</Alert>}
 
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ mt: 1, width: '100%' }}>
                     {/* Sección 1: Datos Personales */}

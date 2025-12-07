@@ -1,50 +1,26 @@
-import React from 'react';
+import React, { useMemo, useCallback, useEffect, useState } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
-import Avatar from '@mui/material/Avatar';
 import Stack from '@mui/material/Stack';
-import Chip from '@mui/material/Chip';
 import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
-import Grid from '@mui/material/Grid';
-import IconButton from '@mui/material/IconButton';
 import Pagination from '@mui/material/Pagination';
 import SearchIcon from '@mui/icons-material/Search';
-import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import { useEffect, useMemo, useState } from 'react';
-import axiosInstance from '../../api/axiosInstance';
-import { HABILIDADES } from '../../constants/apiEndpoints';
-import { useNavigate } from 'react-router-dom';
 import { useSearch } from '../../hooks/useSearch';
-import { ROUTES } from '../../constants/routePaths';
+import UserCard from '../../components/UserCard';
+import { fetchSkillsMap } from '../../utils/skillsCache';
 
+/**
+ * Página de búsqueda de usuarios
+ * Optimizada:
+ * - Sin descarga redundante de habilidades
+ * - Componente UserCard memoizado reutilizable
+ * - SearchPage memoizado con useCallback
+ */
 const SearchPage = () => {
-    const navigate = useNavigate();
-    const [skillsList, setSkillsList] = useState([]);
-
-    useEffect(() => {
-        let mounted = true;
-        axiosInstance.get(HABILIDADES)
-            .then(res => { if (mounted) setSkillsList(res.data || []); })
-            .catch(() => { /* silencioso: no bloquear resultados si falla */ });
-        return () => { mounted = false; };
-    }, []);
-
-    const skillsMap = useMemo(() => {
-        const map = new Map();
-        for (const s of skillsList) {
-            if (s && s.id != null) {
-                map.set(String(s.id), s.nombre_habilidad || s.nombre || '');
-            }
-        }
-        return map;
-    }, [skillsList]);
-
     const {
         searchQuery,
         setSearchQuery,
@@ -58,15 +34,67 @@ const SearchPage = () => {
         handlePageChange,
     } = useSearch();
 
-    const onPageChange = (event, page) => {
+    // Mapa global de habilidades (id -> nombre) desde caché compartido
+    const [skillsMap, setSkillsMap] = useState(new Map());
+
+    useEffect(() => {
+        let isMounted = true;
+        (async () => {
+            try {
+                const skillsObjectMap = await fetchSkillsMap();
+                if (!isMounted) return;
+                setSkillsMap(new Map(Object.entries(skillsObjectMap)));
+            } catch (err) {
+                // Silencioso: si falla, se mostrarán IDs como fallback
+                console.error('Error cargando habilidades:', err);
+            }
+        })();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    /**
+     * Construir mapa de habilidades desde usuarios
+     * Memoizado: solo se recalcula si searchResults cambia
+     */
+    const skillsMapForRender = useMemo(() => {
+        // Construir un mapa extendido combinando el caché global + nombres embebidos
+        const map = new Map(skillsMap);
+
+        searchResults.forEach(user => {
+            const teach = user.habilidades_que_se_saben || [];
+            const learn = user.habilidades_por_aprender || [];
+
+            [...teach, ...learn].forEach(habilidad => {
+                if (habilidad && typeof habilidad === 'object') {
+                    const key = String(habilidad.id);
+                    const value = habilidad.nombre_habilidad || habilidad.nombre;
+                    if (key && value && !map.has(key)) {
+                        map.set(key, value);
+                    }
+                }
+            });
+        });
+
+        return map;
+    }, [searchResults, skillsMap]);
+
+    /**
+     * Manejar cambio de página con scroll suave
+     */
+    const onPageChange = useCallback((event, page) => {
         handlePageChange(page);
         window.scrollTo({ top: 300, behavior: 'smooth' });
-    };
+    }, [handlePageChange]);
 
-    const handleUserClick = (userId) => {
-        // Navegar al perfil del usuario
-        navigate(ROUTES.USUARIO_BY_ID(userId));
-    };
+    /**
+     * Manejar cambio en la búsqueda
+     */
+    const handleSearchChange = useCallback((e) => {
+        setSearchQuery(e.target.value);
+    }, [setSearchQuery]);
 
     return (
         <Box sx={{ bgcolor: 'background.default', minHeight: 'calc(100vh - 64px)' }}>
@@ -81,7 +109,7 @@ const SearchPage = () => {
                     fullWidth
                     placeholder="Busca por nombre, apellido o habilidad..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={handleSearchChange}
                     InputProps={{
                         startAdornment: (
                             <InputAdornment position="start">
@@ -137,126 +165,11 @@ const SearchPage = () => {
                 {/* Resultados de búsqueda */}
                 <Stack spacing={2}>
                     {searchResults.map((user) => (
-                        <Card 
-                            key={user.id} 
-                            sx={{ 
-                                cursor: 'pointer',
-                                transition: 'transform 0.2s, box-shadow 0.2s',
-                                '&:hover': {
-                                    transform: 'translateY(-2px)',
-                                    boxShadow: 3
-                                }
-                            }}
-                            onClick={() => handleUserClick(user.id)}
-                        >
-                            <CardContent>
-                                <Grid container spacing={2} alignItems="center">
-                                    {/* Columna 1: Avatar + datos */}
-                                    <Grid size={{ xs: 12, md: 4 }} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                        <Avatar 
-                                            src={user.media} 
-                                            alt={user.nombre}
-                                            sx={{ width: 60, height: 60 }}
-                                        >
-                                            {user.nombre?.charAt(0).toUpperCase()}
-                                        </Avatar>
-                                        <Box sx={{ minWidth: 0 }}>
-                                            <Typography variant="h6" noWrap>
-                                            {user.nombre} {user.apellido}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary" noWrap>
-                                                {user.email}
-                                            </Typography>
-                                        </Box>
-                                    </Grid>
-
-                                    {/* Columna 2: Habilidades que saben */}
-                                    <Grid size={{ xs: 12, md: 4 }}>
-                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                                            Sabe enseñar
-                                        </Typography>
-                                        {user.habilidades_que_se_saben && user.habilidades_que_se_saben.length > 0 ? (
-                                            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                {user.habilidades_que_se_saben.slice(0, 3).map((habilidad) => (
-                                                    <Chip 
-                                                        key={(typeof habilidad === 'object' ? habilidad.id : habilidad) ?? Math.random()}
-                                                        label={(
-                                                            (() => {
-                                                                if (habilidad && typeof habilidad === 'object') {
-                                                                    return habilidad.nombre_habilidad || habilidad.nombre;
-                                                                }
-                                                                const name = skillsMap.get(String(habilidad));
-                                                                return name || String(habilidad);
-                                                            })()
-                                                        )}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
-                                                ))}
-                                                {user.habilidades_que_se_saben.length > 3 && (
-                                                    <Chip 
-                                                        label={`+${user.habilidades_que_se_saben.length - 3}`}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
-                                                )}
-                                            </Stack>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary">Sin datos</Typography>
-                                        )}
-                                    </Grid>
-
-                                    {/* Columna 3: Habilidades por aprender */}
-                                    <Grid size={{ xs: 12, md: 3 }}>
-                                        <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}>
-                                            Quiere aprender
-                                        </Typography>
-                                        {user.habilidades_por_aprender && user.habilidades_por_aprender.length > 0 ? (
-                                            <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-                                                {user.habilidades_por_aprender.slice(0, 3).map((habilidad) => (
-                                                    <Chip 
-                                                        key={(typeof habilidad === 'object' ? habilidad.id : habilidad) ?? Math.random()}
-                                                        label={(
-                                                            (() => {
-                                                                if (habilidad && typeof habilidad === 'object') {
-                                                                    return habilidad.nombre_habilidad || habilidad.nombre;
-                                                                }
-                                                                const name = skillsMap.get(String(habilidad));
-                                                                return name || String(habilidad);
-                                                            })()
-                                                        )}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
-                                                ))}
-                                                {user.habilidades_por_aprender.length > 3 && (
-                                                    <Chip 
-                                                        label={`+${user.habilidades_por_aprender.length - 3}`}
-                                                        size="small"
-                                                        variant="outlined"
-                                                    />
-                                                )}
-                                            </Stack>
-                                        ) : (
-                                            <Typography variant="body2" color="text.secondary">Sin datos</Typography>
-                                        )}
-                                    </Grid>
-
-                                    {/* Botón de acción */}
-                                    <Grid size={{ xs: 12, md: 1 }} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' } }}>
-                                        <IconButton 
-                                            color="primary"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleUserClick(user.id);
-                                            }}
-                                        >
-                                                <ChevronRightIcon />
-                                        </IconButton>
-                                    </Grid>
-                                </Grid>
-                            </CardContent>
-                        </Card>
+                        <UserCard
+                            key={user.id}
+                            user={user}
+                            skillsMap={skillsMapForRender}
+                        />
                     ))}
                 </Stack>
 
@@ -279,4 +192,4 @@ const SearchPage = () => {
     );
 };
 
-export default SearchPage;
+export default React.memo(SearchPage);

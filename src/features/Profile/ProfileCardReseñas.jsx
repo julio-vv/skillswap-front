@@ -13,6 +13,8 @@ import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import axiosInstance from '../../api/axiosInstance';
+import { useToast } from '../../context/ToastContext';
+import { useReviews } from '../../hooks/useReviews';
 import { VALORACIONES } from '../../constants/apiEndpoints';
 import { useAuth } from '../Auth/AuthContext';
 
@@ -127,12 +129,11 @@ const ReviewEditor = ({ initialValue, onCancel, onSubmit }) => {
 
 const ProfileCardReseñas = ({ profileData }) => {
     const { user } = useAuth();
-    const [reviews, setReviews] = useState([]);
-    const [loading, setLoading] = useState(false);
-    const [editingReview, setEditingReview] = useState(null); // null: no edit, {}: new, {id}: edit existing
-    const [evaluadores, setEvaluadores] = useState({}); // Mapa: evaluadorId -> { nombre, apellido, media }
+    const { showToast } = useToast();
+    const { reviews, loading, ownReview, evaluadoresInfo, fetchReviews, saveReview, deleteReview } = useReviews(profileData?.id, user?.id);
+    const [editingReview, setEditingReview] = useState(null);
 
-    const evaluatedUserId = profileData?.id; // Perfil que estamos viendo
+    const evaluatedUserId = profileData?.id;
 
     const averageRating = useMemo(() => {
         if (!reviews || reviews.length === 0) return 0;
@@ -142,103 +143,31 @@ const ProfileCardReseñas = ({ profileData }) => {
 
     const reviewCount = reviews?.length || 0;
 
-    const ownReview = useMemo(() => {
-        if (!user) return null;
-        return reviews.find(r => String(r.evaluador) === String(user.id)) || null;
-    }, [reviews, user]);
-
     const canEdit = Boolean(user && evaluatedUserId && String(user.id) !== String(evaluatedUserId));
 
-    const fetchReviews = async () => {
-        if (!evaluatedUserId) return;
-        setLoading(true);
-        try {
-            // Este endpoint lista todas; si necesitas filtrar por evaluado, podríamos usar query param
-            const resp = await axiosInstance.get(VALORACIONES);
-            const all = Array.isArray(resp.data) ? resp.data : resp.data?.results || [];
-            const filtered = all.filter(r => String(r.evaluado) === String(evaluatedUserId));
-            
-            setReviews(filtered);
-
-            // Verificar si el backend devuelve el campo evaluador
-            if (filtered.length > 0 && !filtered[0].hasOwnProperty('evaluador')) {
-                // No intentar cargar evaluadores si el campo no existe
-                setEvaluadores({});
-                return;
-            }
-
-            // Obtener información de los evaluadores únicos, filtrando undefined/null
-            const evaluadorIds = [...new Set(
-                filtered
-                    .map(r => r.evaluador)
-                    .filter(id => id !== undefined && id !== null)
-            )];
-            
-            if (evaluadorIds.length === 0) {
-                setEvaluadores({});
-                return;
-            }
-            
-            const evaluadoresData = {};
-            
-            await Promise.all(
-                evaluadorIds.map(async (id) => {
-                    try {
-                        const userResp = await axiosInstance.get(`usuarios/${id}/`);
-                        evaluadoresData[id] = {
-                            nombre: userResp.data.nombre || '',
-                            apellido: userResp.data.apellido || '',
-                            media: userResp.data.media || null
-                        };
-                    } catch (err) {
-                        console.warn(`No se pudo cargar evaluador #${id}:`, err._friendlyMessage || err.message);
-                        evaluadoresData[id] = { nombre: 'Usuario', apellido: '', media: null };
-                    }
-                })
-            );
-            
-            setEvaluadores(evaluadoresData);
-        } catch (e) {
-            console.error('Error cargando valoraciones:', e._friendlyMessage || e.message);
-            setReviews([]);
-        } finally {
-            setLoading(false);
-        }
-    };
-
+    // Cargar reseñas cuando cambia el perfil
     useEffect(() => {
-        fetchReviews();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [evaluatedUserId]);
+        if (evaluatedUserId) {
+            fetchReviews();
+        }
+    }, [evaluatedUserId, fetchReviews]);
 
     const handleCreateOrUpdate = async ({ puntuacion, comentario }) => {
         try {
-            if (ownReview) {
-                await axiosInstance.put(`${VALORACIONES}${ownReview.id}/`, {
-                    evaluado: evaluatedUserId,
-                    puntuacion,
-                    comentario,
-                });
-            } else {
-                await axiosInstance.post(VALORACIONES, {
-                    evaluado: evaluatedUserId,
-                    puntuacion,
-                    comentario,
-                });
-            }
+            await saveReview(comentario, puntuacion);
+            showToast('Reseña guardada correctamente', 'success');
             setEditingReview(null);
-            fetchReviews();
-        } catch (e) {
-            console.error('Error guardando valoración:', e._friendlyMessage || e.message);
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Error al guardar reseña', 'error');
         }
     };
 
     const handleDelete = async (reviewId) => {
         try {
-            await axiosInstance.delete(`${VALORACIONES}${reviewId}/`);
-            fetchReviews();
-        } catch (e) {
-            console.error('Error eliminando valoración:', e._friendlyMessage || e.message);
+            await deleteReview(reviewId);
+            showToast('Reseña eliminada', 'success');
+        } catch (err) {
+            showToast(err.response?.data?.message || 'Error al eliminar reseña', 'error');
         }
     };
 
@@ -303,7 +232,7 @@ const ProfileCardReseñas = ({ profileData }) => {
                                     isOwnReview={ownReview?.id === rev.id}
                                     onEdit={(r) => setEditingReview(r)}
                                     onDelete={handleDelete}
-                                    evaluadorInfo={evaluadores[rev.evaluador] || null}
+                                    evaluadorInfo={evaluadoresInfo[rev.evaluador] || null}
                                 />
                             ))}
                         </Grid>

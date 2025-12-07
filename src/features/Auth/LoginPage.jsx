@@ -5,7 +5,6 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import Alert from '@mui/material/Alert';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
@@ -14,6 +13,7 @@ import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMessages';
 // import axiosInstance from '../../api/axiosInstance';
 import axiosPublic from '../../api/axiosPublic';
@@ -24,13 +24,12 @@ const LoginPage = () => {
     const { register, handleSubmit, formState: { errors } } = useForm();
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
-    const [error, setError] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const { login } = useAuth();
+    const { showToast } = useToast();
 
     const onSubmit = async (data) => {
         setLoading(true);
-        setError('');
         
         try {
             // Llamar al endpoint POST /auth/login/
@@ -54,11 +53,11 @@ const LoginPage = () => {
             // Manejo de errores centralizado
             if (err.response?.data) {
                 const msg = extractApiErrorMessage(err.response.data);
-                setError(msg || ERROR_MESSAGES.unexpected);
+                showToast(msg || ERROR_MESSAGES.unexpected, 'error');
             } else if (err.request) {
-                setError(ERROR_MESSAGES.network);
+                showToast(ERROR_MESSAGES.network, 'error');
             } else {
-                setError(err.message || ERROR_MESSAGES.unexpected);
+                showToast(err.message || ERROR_MESSAGES.unexpected, 'error');
             }
         }
     };
@@ -87,16 +86,6 @@ const LoginPage = () => {
                     Inicia Sesión
                 </Typography>
                 
-                {error && (
-                    <Alert 
-                        severity="error" 
-                        sx={{ width: '100%', mb: 2 }}
-                        onClose={() => setError('')}
-                    >
-                        {error}
-                    </Alert>
-                )}
-
                 <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate sx={{ width: '100%' }}>
                     {/* Campo Email */}
                     <TextField

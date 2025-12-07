@@ -2,11 +2,12 @@ import React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
 
 export default class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorShown: false };
   }
 
   static getDerivedStateFromError(error) {
@@ -23,7 +24,7 @@ export default class ErrorBoundary extends React.Component {
   };
 
   handleReset = () => {
-    this.setState({ hasError: false, error: null });
+    this.setState({ hasError: false, error: null, errorShown: false });
   };
 
   render() {
@@ -37,15 +38,15 @@ export default class ErrorBoundary extends React.Component {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Se produjo un error al renderizar la aplicación. Puedes intentar recargar.
             </Typography>
+            {process.env.NODE_ENV !== 'production' && this.state.error && (
+              <Alert severity="error" sx={{ mb: 2, textAlign: 'left' }}>
+                <Typography variant="caption">{String(this.state.error)}</Typography>
+              </Alert>
+            )}
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center' }}>
               <Button variant="contained" onClick={this.handleReload}>Recargar página</Button>
               <Button variant="outlined" onClick={this.handleReset}>Intentar continuar</Button>
             </Box>
-            {process.env.NODE_ENV !== 'production' && this.state.error && (
-              <Box sx={{ mt: 2, textAlign: 'left' }}>
-                <Typography variant="caption" color="error">{String(this.state.error)}</Typography>
-              </Box>
-            )}
           </Box>
         </Box>
       );

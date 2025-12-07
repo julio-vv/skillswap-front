@@ -13,6 +13,9 @@ const RegisterPage = lazy(() => import('./features/Auth/RegisterPage'));
 const MatchesPage = lazy(() => import('./features/Matches/MatchesPage'));
 const ProfilePage = lazy(() => import('./features/Profile/ProfilePage'));
 const SearchPage = lazy(() => import('./features/Search/SearchPage'));
+const NotificationsPage = lazy(() => import('./features/Notifications/NotificationsPage'));
+const FriendsPage = lazy(() => import('./features/Friends/FriendsPage'));
+const ChatPage = lazy(() => import('./features/Chat/ChatPage'));
 
 // Hook para actualizar el título de la pestaña según la ruta
 function usePageTitle() {
@@ -22,6 +25,9 @@ function usePageTitle() {
             [ROUTES.HOME]: 'SkillSwap — Matches',
             [ROUTES.SEARCH]: 'SkillSwap — Buscar Usuarios',
             [ROUTES.PROFILE]: 'SkillSwap — Mi Perfil',
+            [ROUTES.NOTIFICATIONS]: 'SkillSwap — Notificaciones',
+            [ROUTES.FRIENDS]: 'SkillSwap — Mis Amigos',
+            [ROUTES.CHAT]: 'SkillSwap — Chat',
             [ROUTES.LOGIN]: 'SkillSwap — Iniciar Sesión',
             [ROUTES.REGISTER]: 'SkillSwap — Registro',
             [ROUTES.ROOT]: 'SkillSwap — Bienvenida',
@@ -84,7 +90,10 @@ function App() {
                     <Route path={ROUTES.PROFILE} element={<ProtectedRoute element={<ProfilePage />} />} />
                     <Route path="/usuarios/:id" element={<ProtectedRoute element={<ProfilePage />} />} />
                     <Route path={ROUTES.SEARCH} element={<ProtectedRoute element={<SearchPage />} />} />
-                    <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute element={<h1>Notificaciones...</h1>} />} />
+                    <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute element={<NotificationsPage />} />} />
+                    <Route path={ROUTES.FRIENDS} element={<ProtectedRoute element={<FriendsPage />} />} />
+                    <Route path={ROUTES.CHAT} element={<ProtectedRoute element={<ChatPage />} />} />
+                    <Route path="/chat/:conversacionId" element={<ProtectedRoute element={<ChatPage />} />} />
                 </Route>
 
                 {/* 404 */}

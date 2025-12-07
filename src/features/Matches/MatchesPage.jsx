@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Container from '@mui/material/Container';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
@@ -6,56 +6,61 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
-import Alert from '@mui/material/Alert';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../constants/routePaths';
 import { USUARIOS } from '../../constants/apiEndpoints';
 import axiosInstance from '../../api/axiosInstance';
+import { useToast } from '../../context/ToastContext';
+import { useFetchData } from '../../hooks/useFetchData';
 import MatchSection from './components/MatchSection';
 import { filterUsersByMatchType } from './utils/skillHelpers';
 import { PAGE_SIZE } from './constants/matchConstants';
 
 const MatchesPage = () => {
     const navigate = useNavigate();
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const { showToast } = useToast();
+    const [page, setPage] = useState({ mutual: 1, teach: 1, learn: 1 });
     const [mutual, setMutual] = useState([]);
     const [teach, setTeach] = useState([]);
     const [learn, setLearn] = useState([]);
-    const [page, setPage] = useState({ mutual: 1, teach: 1, learn: 1 });
     const [hasMore, setHasMore] = useState({ mutual: false, teach: false, learn: false });
 
     const handleUserClick = useCallback((userId) => {
         navigate(ROUTES.USUARIO_BY_ID(userId));
     }, [navigate]);
 
-    const loadCoincidencias = useCallback(() => {
-        setLoading(true);
-        setError(null);
-        axiosInstance.get(USUARIOS.coincidencias)
-            .then(res => {
-                const coincidencias = res.data || [];
-                const { mutual, teach, learn } = filterUsersByMatchType(coincidencias);
-                
-                setMutual(mutual);
-                setTeach(teach);
-                setLearn(learn);
-                setHasMore({
-                    mutual: mutual.length > PAGE_SIZE.mutual,
-                    teach: teach.length > PAGE_SIZE.teach,
-                    learn: learn.length > PAGE_SIZE.learn,
-                });
-                setLoading(false);
-            })
-            .catch(() => {
-                setError('Error al cargar coincidencias.');
-                setLoading(false);
-            });
-    }, []);
+    // Usar hook reutilizable para fetch
+    const { loading, error, refetch } = useFetchData(
+        async ({ signal }) => {
+            const res = await axiosInstance.get(USUARIOS.coincidencias, { signal });
+            const coincidencias = res.data || [];
+            const { mutual, teach, learn } = filterUsersByMatchType(coincidencias);
 
+            setMutual(mutual);
+            setTeach(teach);
+            setLearn(learn);
+            setHasMore({
+                mutual: mutual.length > PAGE_SIZE.mutual,
+                teach: teach.length > PAGE_SIZE.teach,
+                learn: learn.length > PAGE_SIZE.learn,
+            });
+
+            return coincidencias;
+        },
+        [],
+        {
+            initialData: [],
+        }
+    );
+
+    const loadCoincidencias = refetch;
+
+    // Mostrar toast cuando hay error
     useEffect(() => {
-        loadCoincidencias();
-    }, [loadCoincidencias]);
+        if (error) {
+            showToast(error, 'error');
+        }
+    }, [error, showToast]);
 
     // Paginación local (solo muestra los primeros N y permite ver más)
     const paginated = {
@@ -80,8 +85,6 @@ const MatchesPage = () => {
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
                         <CircularProgress />
                     </Box>
-                ) : error ? (
-                    <Alert severity="error">{error}</Alert>
                 ) : (
                     <>
                         {/* Sección 1: Coincidencia mutua */}
