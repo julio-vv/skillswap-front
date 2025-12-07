@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Paper from '@mui/material/Paper';
@@ -5,7 +6,7 @@ import Paper from '@mui/material/Paper';
 /**
  * Burbuja individual de mensaje
  */
-export const MessageBubble = ({ message, isOwnMessage, formatMessageDate }) => {
+export const MessageBubble = memo(({ message, isOwnMessage, formatMessageDate }) => {
     return (
         <Box
             sx={{
@@ -49,4 +50,12 @@ export const MessageBubble = ({ message, isOwnMessage, formatMessageDate }) => {
             </Paper>
         </Box>
     );
-};
+}, (prevProps, nextProps) => {
+    // Retornar true si son iguales (no re-renderizar)
+    return prevProps.message.id === nextProps.message.id &&
+           prevProps.isOwnMessage === nextProps.isOwnMessage &&
+           prevProps.message.contenido === nextProps.message.contenido &&
+           prevProps.message.fecha === nextProps.message.fecha;
+});
+
+MessageBubble.displayName = 'MessageBubble';

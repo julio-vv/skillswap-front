@@ -1,10 +1,11 @@
+import { memo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
 /**
  * Separador de fecha entre grupos de mensajes
  */
-export const DateDivider = ({ dateKey }) => {
+export const DateDivider = memo(({ dateKey }) => {
     return (
         <Box 
             display="flex" 
@@ -25,4 +26,6 @@ export const DateDivider = ({ dateKey }) => {
             </Typography>
         </Box>
     );
-};
+});
+
+DateDivider.displayName = 'DateDivider';

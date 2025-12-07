@@ -1,10 +1,11 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
 import { useMessages } from '../hooks/useMessages';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useMessageFormatting } from '../hooks/useMessageFormatting';
 import { useMessageInput } from '../hooks/useMessageInput';
+import { useToast } from '../../../context/ToastContext';
 import { ChatHeader } from './ChatHeader';
 import { MessagesContainer } from './MessagesContainer';
 import { MessageInput } from './MessageInput';
@@ -16,6 +17,13 @@ import { ChatEmptyState } from './ChatEmptyState';
  * entrada de texto y renderizado de la interfaz
  */
 export const ChatWindow = ({ conversationId, otherUser, onBack }) => {
+    const { showToast } = useToast();
+    
+    // Memoizar callback de error
+    const handleError = useCallback((errorMsg) => {
+        showToast(errorMsg, 'error', 5000);
+    }, [showToast]);
+    
     const { 
         messages, 
         loading, 
@@ -23,7 +31,7 @@ export const ChatWindow = ({ conversationId, otherUser, onBack }) => {
         sending, 
         currentUserId, 
         sendMessage 
-    } = useMessages(conversationId);
+    } = useMessages(conversationId, handleError);
 
     const {
         messagesContainerRef,
@@ -50,7 +58,7 @@ export const ChatWindow = ({ conversationId, otherUser, onBack }) => {
     // Resetear scroll cuando cambia la conversación
     useEffect(() => {
         resetScrollState();
-    }, [conversationId]);
+    }, [conversationId, resetScrollState]);
 
     // Estados vacíos
     if (!conversationId) {

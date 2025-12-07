@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -8,7 +9,7 @@ import SendIcon from '@mui/icons-material/Send';
 /**
  * Área de entrada de mensajes
  */
-export const MessageInput = ({ 
+export const MessageInput = memo(({ 
     value, 
     onChange, 
     onSubmit, 
@@ -51,4 +52,6 @@ export const MessageInput = ({
             </IconButton>
         </Paper>
     );
-};
+});
+
+MessageInput.displayName = 'MessageInput';

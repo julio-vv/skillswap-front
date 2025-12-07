@@ -3,43 +3,39 @@ import axiosInstance from '../../../api/axiosInstance';
 
 /**
  * Hook para gestionar mensajes de una conversación específica
- * Asume endpoints:
- * - GET /chat/conversaciones/{id}/mensajes/ : Lista de mensajes de una conversación
+ * Utiliza SSE (Server-Sent Events) para recibir mensajes nuevos en tiempo real.
+ * Endpoints:
+ * - GET /chat/conversaciones/{id}/mensajes/ : Historial inicial de mensajes
  * - POST /chat/conversaciones/{id}/enviar/ : Enviar un nuevo mensaje
- * - PATCH /chat/conversaciones/{id}/mensajes/{messageId}/ : Actualizar un mensaje
+ * - GET /chat/conversaciones/{id}/stream/?last_id=<n> : SSE stream para nuevos mensajes
  * - DELETE /chat/conversaciones/{id}/mensajes/{messageId}/ : Eliminar un mensaje
  */
-export const useMessages = (conversationId) => {
+export const useMessages = (conversationId, onError) => {
     const [messages, setMessages] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [sending, setSending] = useState(false);
     const [currentUserId, setCurrentUserId] = useState(null);
+    const [useSSE, setUseSSE] = useState(true); // Flag para saber si SSE funciona
+    
+    // SSE y state tracking
+    const eventSourceRef = useRef(null);
+    const lastMessageIdRef = useRef(0);
+    const reconnectTimeoutRef = useRef(null);
     const pollingIntervalRef = useRef(null);
+    const isInitialLoadRef = useRef(false);
 
     /**
-     * Obtiene los mensajes de la conversación
-     * Estructura esperada de cada mensaje:
-     * {
-     *   id: number,
-     *   conversacion: number,
-     *   remitente: number | { id, nombre, apellido, ... },
-     *   contenido: string,
-     *   enviado_en: string (o fecha),
-     *   leido: boolean
-     * }
-     * @param {boolean} silent - Si es true, no muestra el loading spinner (usado en polling)
+     * Obtiene los mensajes iniciales de la conversación
      */
-    const fetchMessages = useCallback(async (silent = false) => {
+    const fetchInitialMessages = useCallback(async () => {
         if (!conversationId) return;
 
         try {
-            if (!silent) {
-                setLoading(true);
-            }
+            setLoading(true);
             setError(null);
 
-            // Obtener solo los últimos 50 mensajes de la conversación
+            // Obtener los últimos 50 mensajes de la conversación
             const response = await axiosInstance.get(`/chat/conversaciones/${conversationId}/mensajes/`, {
                 params: {
                     limit: 50,
@@ -53,10 +49,10 @@ export const useMessages = (conversationId) => {
                 setCurrentUserId(authResponse.data.id);
             }
 
-            // Normalizar mensajes: mapear enviado_en a fecha si es necesario
+            // Normalizar mensajes
             const normalizedMessages = response.data.map(msg => ({
                 ...msg,
-                fecha: msg.fecha || msg.enviado_en // Usar enviado_en si fecha no existe
+                fecha: msg.fecha || msg.enviado_en
             }));
 
             // Ordenar mensajes por fecha (más antiguos primero)
@@ -66,23 +62,14 @@ export const useMessages = (conversationId) => {
                 return dateA - dateB;
             });
 
-            // Solo actualizar si hay cambios (comparar cantidad o IDs)
-            setMessages(prevMessages => {
-                if (prevMessages.length !== sortedMessages.length) {
-                    return sortedMessages;
-                }
-                // Comparar IDs del último mensaje
-                const prevLastId = prevMessages[prevMessages.length - 1]?.id;
-                const newLastId = sortedMessages[sortedMessages.length - 1]?.id;
-                if (prevLastId !== newLastId) {
-                    return sortedMessages;
-                }
-                // No hay cambios, mantener el estado anterior
-                return prevMessages;
-            });
+            setMessages(sortedMessages);
+            
+            // Guardar el ID del último mensaje para SSE
+            if (sortedMessages.length > 0) {
+                lastMessageIdRef.current = sortedMessages[sortedMessages.length - 1].id;
+            }
         } catch (err) {
-            console.error('Error fetching messages:', err);
-            // Si el endpoint no existe (404), no mostrar error al usuario
+            console.error('Error fetching initial messages:', err);
             if (err.response?.status === 404) {
                 setError(null);
                 setMessages([]);
@@ -119,10 +106,113 @@ export const useMessages = (conversationId) => {
             return normalizedMessage;
         } catch (err) {
             console.error('Error sending message:', err);
+            // Notificar al usuario del error mediante callback
+            if (onError) {
+                const errorMessage = err.response?.data?.detail || 'Error al enviar el mensaje. Por favor, intenta de nuevo.';
+                onError(errorMessage);
+            }
             throw err;
         } finally {
             setSending(false);
         }
+    }, [conversationId, onError]);
+
+    /**
+     * Configura y conecta al stream SSE para recibir mensajes nuevos en tiempo real
+     */
+    const setupSSE = useCallback(() => {
+        if (!conversationId || !isInitialLoadRef.current) {
+            return; // Esperar a que se cargue el historial inicial
+        }
+
+        // Detener conexión anterior si existe
+        if (eventSourceRef.current) {
+            eventSourceRef.current.close();
+        }
+
+        try {
+            console.log(`[SSE] Conectando a stream con last_id=${lastMessageIdRef.current}`);
+            
+            // Crear nueva conexión SSE
+            const url = `/chat/conversaciones/${conversationId}/stream/?last_id=${lastMessageIdRef.current}`;
+            eventSourceRef.current = new EventSource(url);
+
+            eventSourceRef.current.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    console.log(`[SSE] Nuevo mensaje recibido (id=${msg.id}):`, msg.contenido.substring(0, 50));
+                    
+                    // Normalizar mensaje
+                    const normalizedMsg = {
+                        ...msg,
+                        fecha: msg.fecha || msg.enviado_en
+                    };
+
+                    // Agregar mensaje a la lista
+                    setMessages(prev => [...prev, normalizedMsg]);
+                    
+                    // Actualizar last_id para próxima reconexión
+                    lastMessageIdRef.current = msg.id;
+                } catch (err) {
+                    console.error('[SSE] Error parsing message:', err);
+                }
+            };
+
+            eventSourceRef.current.onerror = (err) => {
+                console.warn('[SSE] Connection error, cerrando stream');
+                eventSourceRef.current.close();
+                
+                // Si SSE falla múltiples veces, caer a polling
+                setUseSSE(false);
+                console.log('[SSE] Fallback a polling automático');
+            };
+
+        } catch (err) {
+            console.error('[SSE] Error setting up EventSource:', err);
+        }
+    }, [conversationId]);
+
+    /**
+     * Polling fallback para cuando SSE no esté disponible
+     */
+    const setupPollingFallback = useCallback(() => {
+        if (!conversationId) return;
+
+        console.log('[POLLING] Iniciando polling cada 30s como fallback de SSE');
+        
+        pollingIntervalRef.current = setInterval(async () => {
+            try {
+                const response = await axiosInstance.get(`/chat/conversaciones/${conversationId}/mensajes/`, {
+                    params: {
+                        limit: 50,
+                        ordering: '-enviado_en'
+                    }
+                });
+
+                const normalizedMessages = response.data.map(msg => ({
+                    ...msg,
+                    fecha: msg.fecha || msg.enviado_en
+                }));
+
+                const sortedMessages = [...normalizedMessages].sort((a, b) => {
+                    const dateA = a.fecha ? new Date(a.fecha) : new Date(0);
+                    const dateB = b.fecha ? new Date(b.fecha) : new Date(0);
+                    return dateA - dateB;
+                });
+
+                // Actualizar solo si hay mensajes nuevos
+                setMessages(prevMessages => {
+                    const prevLastId = prevMessages[prevMessages.length - 1]?.id;
+                    const newLastId = sortedMessages[sortedMessages.length - 1]?.id;
+                    if (prevLastId !== newLastId) {
+                        return sortedMessages;
+                    }
+                    return prevMessages;
+                });
+            } catch (err) {
+                console.error('[POLLING] Error al obtener mensajes:', err);
+            }
+        }, 30000);
     }, [conversationId]);
 
     /**
@@ -163,37 +253,55 @@ export const useMessages = (conversationId) => {
         }
     }, []);
 
-    // Cargar mensajes al montar o cuando cambie el conversationId
+    // Cargar mensajes iniciales al montar o cuando cambie la conversación
     useEffect(() => {
+        lastMessageIdRef.current = 0;
+        isInitialLoadRef.current = false;
+        setUseSSE(true); // Reset SSE flag al cambiar conversación
+        
         if (conversationId) {
-            fetchMessages();
+            fetchInitialMessages().then(() => {
+                isInitialLoadRef.current = true;
+                // Después de cargar el historial, intentar SSE
+                setupSSE();
+            });
         } else {
             setMessages([]);
             setLoading(false);
         }
-    }, [conversationId, fetchMessages]);
-
-    // Polling cada 10 segundos para nuevos mensajes (modo silencioso)
-    useEffect(() => {
-        if (!conversationId) return;
-
-        pollingIntervalRef.current = setInterval(() => {
-            fetchMessages(true); // true = silent mode (no loading spinner)
-        }, 10000); // 10 segundos
 
         return () => {
+            // Limpiar conexiones al desmontar
+            if (eventSourceRef.current) {
+                eventSourceRef.current.close();
+            }
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
             if (pollingIntervalRef.current) {
                 clearInterval(pollingIntervalRef.current);
             }
         };
-    }, [conversationId, fetchMessages]);
+    }, [conversationId, fetchInitialMessages, setupSSE]);
+
+    // Fallback a polling si SSE falla
+    useEffect(() => {
+        if (!useSSE && conversationId) {
+            setupPollingFallback();
+            return () => {
+                if (pollingIntervalRef.current) {
+                    clearInterval(pollingIntervalRef.current);
+                }
+            };
+        }
+    }, [useSSE, conversationId, setupPollingFallback]);
 
     // Marcar como leído cuando se ven los mensajes
     useEffect(() => {
         if (messages.length > 0 && currentUserId) {
             markMessagesAsRead();
         }
-    }, [messages.length, currentUserId]); // Solo cuando cambian los mensajes
+    }, [messages.length, currentUserId]);
 
     return {
         messages,
@@ -203,6 +311,6 @@ export const useMessages = (conversationId) => {
         currentUserId,
         sendMessage,
         deleteMessage,
-        fetchMessages
+        fetchInitialMessages
     };
 };

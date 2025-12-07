@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
 
 /**
@@ -12,6 +12,7 @@ export const useConversations = () => {
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const isInitializedRef = useRef(false);
 
     /**
      * Obtiene todas las conversaciones del usuario
@@ -168,16 +169,19 @@ export const useConversations = () => {
         ? conversations.reduce((total, conv) => total + (typeof conv?.unreadCount === 'number' ? conv.unreadCount : 0), 0)
         : 0;
 
-    // Cargar conversaciones al montar
+    // Cargar conversaciones al montar (solo una vez)
     useEffect(() => {
-        fetchConversations();
-    }, [fetchConversations]);
+        if (!isInitializedRef.current) {
+            isInitializedRef.current = true;
+            fetchConversations();
+        }
+    }, []);
 
-    // Polling cada 30 segundos para actualizar conversaciones (modo silencioso)
+    // Polling cada 60 segundos para actualizar conversaciones (modo silencioso)
     useEffect(() => {
         const interval = setInterval(() => {
             fetchConversations(true); // true = silent mode
-        }, 30000); // 30 segundos
+        }, 60000); // 60 segundos
 
         return () => clearInterval(interval);
     }, [fetchConversations]);

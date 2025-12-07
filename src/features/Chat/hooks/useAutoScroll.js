@@ -74,16 +74,21 @@ export const useAutoScroll = (messages, loading) => {
         }
     }, [messages.length, loading]);
 
-    // Restaurar scroll si fue reseteado por polling
+    // Restaurar scroll si fue reseteado por polling (ejecutar con frecuencia pero de manera controlada)
     useEffect(() => {
-        if (shouldMaintainScrollRef.current && messagesContainerRef.current && lastScrollTopRef.current > 0) {
-            if (messagesContainerRef.current.scrollTop === 0 && messagesContainerRef.current.scrollHeight > 100) {
-                messagesContainerRef.current.scrollTop = lastScrollTopRef.current;
-            } else if (messagesContainerRef.current.scrollTop !== lastScrollTopRef.current) {
-                lastScrollTopRef.current = messagesContainerRef.current.scrollTop;
+        const handleScrollRestore = () => {
+            if (shouldMaintainScrollRef.current && messagesContainerRef.current && lastScrollTopRef.current > 0) {
+                if (messagesContainerRef.current.scrollTop === 0 && messagesContainerRef.current.scrollHeight > 100) {
+                    messagesContainerRef.current.scrollTop = lastScrollTopRef.current;
+                } else if (messagesContainerRef.current.scrollTop !== lastScrollTopRef.current) {
+                    lastScrollTopRef.current = messagesContainerRef.current.scrollTop;
+                }
             }
-        }
-    }); // Sin dependencias: ejecutar en CADA render
+        };
+        
+        // Ejecutar al cambiar mensajes
+        handleScrollRestore();
+    }, [messages.length]);
 
     // Auto-scroll cuando llegan nuevos mensajes (solo si usuario está al final)
     useEffect(() => {

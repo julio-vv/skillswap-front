@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -8,7 +9,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 /**
  * Header del chat con información del usuario
  */
-export const ChatHeader = ({ otherUser, onBack }) => {
+export const ChatHeader = memo(({ otherUser, onBack }) => {
     return (
         <Paper 
             elevation={1} 
@@ -49,4 +50,6 @@ export const ChatHeader = ({ otherUser, onBack }) => {
             )}
         </Paper>
     );
-};
+});
+
+ChatHeader.displayName = 'ChatHeader';
