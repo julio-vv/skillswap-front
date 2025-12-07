@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
 import { fetchSkillsMap, expandSkills } from '../../../utils/skillsCache';
+import { AUTH, USUARIOS } from '../../../constants/apiEndpoints';
 
 /**
  * Hook personalizado para gestionar la lista de amigos (matches)
@@ -29,14 +30,14 @@ export const useFriends = () => {
             
             // Obtener usuario autenticado y habilidades en paralelo
             const [authResponse, skillsMap] = await Promise.all([
-                axiosInstance.get('/auth/user/'),
+                axiosInstance.get(AUTH.USER),
                 fetchSkillsMap()
             ]);
             
             const userId = authResponse.data.id;
             
             // Obtener perfil del usuario (incluye matches)
-            const userResponse = await axiosInstance.get(`/usuarios/${userId}/`);
+            const userResponse = await axiosInstance.get(USUARIOS.detalle(userId));
             const userData = userResponse.data;
             const matchIds = userData.matches || [];
             
@@ -53,7 +54,7 @@ export const useFriends = () => {
             const friendsData = await Promise.all(
                 matchIds.map(async (friendId) => {
                     try {
-                        const friendResponse = await axiosInstance.get(`/usuarios/${friendId}/`);
+                        const friendResponse = await axiosInstance.get(USUARIOS.detalle(friendId));
                         const friendData = friendResponse.data;
                         
                         return {

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
+import { NOTIFICACIONES } from '../../../constants/apiEndpoints';
 
 /**
  * Hook personalizado para gestionar notificaciones
@@ -30,7 +31,7 @@ export const useNotifications = () => {
     const fetchNotifications = useCallback(async () => {
         try {
             setLoading(true);
-            const response = await axiosInstance.get('/notificaciones/');
+            const response = await axiosInstance.get(NOTIFICACIONES.listar);
             const data = response.data;
             
             if (isMountedRef.current) {
@@ -58,7 +59,7 @@ export const useNotifications = () => {
      */
     const markAsRead = useCallback(async (notificationId) => {
         try {
-            await axiosInstance.patch(`/notificaciones/${notificationId}/`, {
+            await axiosInstance.patch(NOTIFICACIONES.actualizar(notificationId), {
                 leido: true
             });
             if (isMountedRef.current) {
@@ -75,7 +76,7 @@ export const useNotifications = () => {
      */
     const hideNotification = useCallback(async (notificationId) => {
         try {
-            await axiosInstance.patch(`/notificaciones/${notificationId}/`, {
+            await axiosInstance.patch(NOTIFICACIONES.actualizar(notificationId), {
                 mostrar: false
             });
             if (isMountedRef.current) {

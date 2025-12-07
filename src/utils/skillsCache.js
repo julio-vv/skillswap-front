@@ -1,4 +1,5 @@
 import axiosInstance from '../api/axiosInstance';
+import { HABILIDADES } from '../constants/apiEndpoints';
 
 /**
  * Sistema de caché para habilidades
@@ -40,7 +41,7 @@ export const fetchSkillsMap = async () => {
     // Crear nueva petición
     skillsCache.promise = (async () => {
         try {
-            const skillsResponse = await axiosInstance.get('/habilidades/');
+            const skillsResponse = await axiosInstance.get(HABILIDADES);
             const skillsMap = skillsResponse.data.reduce((acc, skill) => {
                 acc[skill.id] = skill.nombre_habilidad || skill.nombre;
                 return acc;

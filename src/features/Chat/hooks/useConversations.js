@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
+import { CHAT, AUTH, HABILIDADES, USUARIOS } from '../../../constants/apiEndpoints';
 
 /**
  * Hook para gestionar conversaciones del usuario
@@ -34,15 +35,15 @@ export const useConversations = () => {
             setError(null);
 
             // Obtener conversaciones
-            const response = await axiosInstance.get('/chat/conversaciones/');
+            const response = await axiosInstance.get(CHAT.conversaciones);
             const conversationsData = response.data;
 
             // Obtener usuario autenticado para filtrar participantes
-            const authResponse = await axiosInstance.get('/auth/user/');
+            const authResponse = await axiosInstance.get(AUTH.USER);
             const currentUserId = authResponse.data.id;
 
             // Obtener habilidades para expandir datos
-            const skillsResponse = await axiosInstance.get('/habilidades/');
+            const skillsResponse = await axiosInstance.get(HABILIDADES);
             const skillsMap = skillsResponse.data.reduce((acc, skill) => {
                 acc[skill.id] = skill.nombre_habilidad;
                 return acc;
@@ -63,7 +64,7 @@ export const useConversations = () => {
                 // Obtener datos de cada usuario
                 for (const userId of userIds) {
                     try {
-                        const userResponse = await axiosInstance.get(`/usuarios/${userId}/`);
+                        const userResponse = await axiosInstance.get(USUARIOS.detalle(userId));
                         usersMap[userId] = userResponse.data;
                     } catch (err) {
                         console.error(`Error fetching user ${userId}:`, err);
@@ -131,7 +132,7 @@ export const useConversations = () => {
     const getOrCreateConversation = useCallback(async (userId) => {
         try {
             // Primero intentar obtener conversaciones existentes
-            const conversationsResponse = await axiosInstance.get('/chat/conversaciones/');
+            const conversationsResponse = await axiosInstance.get(CHAT.conversaciones);
             const existingConversation = conversationsResponse.data.find(conv => {
                 // Buscar una conversación donde el otro participante es el userId buscado
                 return conv.participantes && conv.participantes.includes(userId);
@@ -144,7 +145,7 @@ export const useConversations = () => {
 
             // Si no existe, crear una nueva conversación
             console.log(`[Chat] Creando nueva conversación con usuario ${userId}`);
-            const response = await axiosInstance.post('/chat/conversaciones/', {
+            const response = await axiosInstance.post(CHAT.conversaciones, {
                 participantes: [userId]
             });
             
@@ -163,7 +164,7 @@ export const useConversations = () => {
      */
     const markAsRead = useCallback(async (conversationId) => {
         try {
-            await axiosInstance.post(`/chat/conversaciones/${conversationId}/marcar_leido/`);
+            await axiosInstance.post(CHAT.marcarLeido(conversationId));
             
             // Actualizar localmente
             setConversations(prev => prev.map(conv => 

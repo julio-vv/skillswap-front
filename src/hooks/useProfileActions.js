@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { ROUTES } from '../constants/routePaths';
 import { useToast } from '../context/ToastContext';
+import { USUARIOS } from '../constants/apiEndpoints';
 
 /**
  * Hook para manejar acciones de match/chat/remove en el perfil
@@ -63,7 +64,7 @@ export const useProfileActions = (urlUserId, user, fetchProfile) => {
         if (!confirmed) return;
 
         try {
-            await axiosInstance.delete(`/usuarios/coincidencias/${urlUserId}/`);
+            await axiosInstance.delete(USUARIOS.coincidenciaById(urlUserId));
             await fetchProfile();
             setMatchStatus(null);
             showToast('Amigo eliminado correctamente', 'success');

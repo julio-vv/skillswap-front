@@ -146,6 +146,7 @@ const ProfilePage = () => {
         if (updatedData) {
             reset(formatProfileDataForForm(updatedData));
             setIsEditing(false);
+            showToast('Perfil actualizado correctamente', 'success');
         }
     };
 

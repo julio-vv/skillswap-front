@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
+import { CHAT, AUTH } from '../../../constants/apiEndpoints';
 
 /**
  * Hook para gestionar mensajes de una conversación específica
@@ -36,7 +37,7 @@ export const useMessages = (conversationId, onError) => {
             setError(null);
 
             // Obtener los últimos 50 mensajes de la conversación
-            const response = await axiosInstance.get(`/chat/conversaciones/${conversationId}/mensajes/`, {
+            const response = await axiosInstance.get(CHAT.mensajes(conversationId), {
                 params: {
                     limit: 50,
                     ordering: '-enviado_en' // Más recientes primero
@@ -45,7 +46,7 @@ export const useMessages = (conversationId, onError) => {
 
             // Obtener usuario actual si no lo tenemos
             if (!currentUserId) {
-                const authResponse = await axiosInstance.get('/auth/user/');
+                const authResponse = await axiosInstance.get(AUTH.USER);
                 setCurrentUserId(authResponse.data.id);
             }
 
@@ -90,7 +91,7 @@ export const useMessages = (conversationId, onError) => {
         try {
             setSending(true);
             
-            const response = await axiosInstance.post(`/chat/conversaciones/${conversationId}/enviar/`, {
+            const response = await axiosInstance.post(CHAT.enviarMensaje(conversationId), {
                 contenido: contenido.trim()
             });
 
@@ -182,7 +183,7 @@ export const useMessages = (conversationId, onError) => {
         
         pollingIntervalRef.current = setInterval(async () => {
             try {
-                const response = await axiosInstance.get(`/chat/conversaciones/${conversationId}/mensajes/`, {
+                const response = await axiosInstance.get(CHAT.mensajes(conversationId), {
                     params: {
                         limit: 50,
                         ordering: '-enviado_en'
@@ -243,7 +244,7 @@ export const useMessages = (conversationId, onError) => {
      */
     const deleteMessage = useCallback(async (messageId) => {
         try {
-            await axiosInstance.delete(`/chat/conversaciones/${conversationId}/mensajes/${messageId}/`);
+            await axiosInstance.delete(CHAT.eliminarMensaje(conversationId, messageId));
             
             // Eliminar de la lista local
             setMessages(prev => prev.filter(msg => msg.id !== messageId));

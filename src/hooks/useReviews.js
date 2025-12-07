@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import axiosInstance from '../api/axiosInstance';
-import { VALORACIONES } from '../constants/apiEndpoints';
+import { VALORACIONES, USUARIOS } from '../constants/apiEndpoints';
 
 /**
  * Hook para manejar la carga y gestión de reseñas/valoraciones
@@ -24,7 +24,7 @@ export const useReviews = (profileUserId, currentUserId) => {
         
         setLoading(true);
         try {
-            const resp = await axiosInstance.get(VALORACIONES);
+            const resp = await axiosInstance.get(VALORACIONES.listar);
             const allReviews = resp.data || [];
             
             // Filtrar solo reseñas del usuario actual si estamos viendo otro perfil
@@ -40,7 +40,7 @@ export const useReviews = (profileUserId, currentUserId) => {
                 for (const review of filtered) {
                     if (!newEvaluadoresInfo[review.evaluador]) {
                         try {
-                            const userResp = await axiosInstance.get(`usuarios/${review.evaluador}/`);
+                            const userResp = await axiosInstance.get(USUARIOS.detalle(review.evaluador));
                             newEvaluadoresInfo[review.evaluador] = userResp.data;
                         } catch (e) {
                             // Silenciosamente ignorar si no se carga la info del usuario
@@ -69,14 +69,14 @@ export const useReviews = (profileUserId, currentUserId) => {
         try {
             if (ownReview) {
                 // Actualizar reseña existente
-                await axiosInstance.put(`${VALORACIONES}${ownReview.id}/`, {
+                await axiosInstance.put(VALORACIONES.detalle(ownReview.id), {
                     evaluado: profileUserId,
                     puntuacion,
                     comentario,
                 });
             } else {
                 // Crear nueva reseña
-                await axiosInstance.post(VALORACIONES, {
+                await axiosInstance.post(VALORACIONES.listar, {
                     evaluado: profileUserId,
                     puntuacion,
                     comentario,
@@ -94,7 +94,7 @@ export const useReviews = (profileUserId, currentUserId) => {
      */
     const deleteReview = useCallback(async (reviewId) => {
         try {
-            await axiosInstance.delete(`${VALORACIONES}${reviewId}/`);
+            await axiosInstance.delete(VALORACIONES.detalle(reviewId));
             await fetchReviews();
         } catch (e) {
             console.error('Error eliminando valoración:', e._friendlyMessage || e.message);

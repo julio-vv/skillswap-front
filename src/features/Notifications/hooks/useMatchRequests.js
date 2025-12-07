@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
 import { fetchSkillsMap, expandSkills } from '../../../utils/skillsCache';
 import { useAuth } from '../../Auth/AuthContext';
+import { SOLICITUDES_MATCH, USUARIOS, AUTH } from '../../../constants/apiEndpoints';
 
 /**
  * Hook personalizado para gestionar solicitudes de match
@@ -37,7 +38,7 @@ export const useMatchRequests = () => {
             
             // Obtener solicitudes y habilidades en paralelo
             const [response, skillsMap] = await Promise.all([
-                axiosInstance.get('/solicitudes-match/'),
+                axiosInstance.get(SOLICITUDES_MATCH.listar),
                 fetchSkillsMap()
             ]);
             
@@ -55,7 +56,7 @@ export const useMatchRequests = () => {
                 pendingRequests.map(async (request) => {
                     try {
                         // Obtener datos completos del usuario emisor
-                        const userResponse = await axiosInstance.get(`/usuarios/${request.emisor}/`);
+                        const userResponse = await axiosInstance.get(USUARIOS.detalle(request.emisor));
                         const userData = userResponse.data;
                         
                         return {

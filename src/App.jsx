@@ -33,8 +33,13 @@ function usePageTitle() {
             [ROUTES.ROOT]: 'SkillSwap — Bienvenida',
         };
         const base = 'SkillSwap';
+        // Rutas dinámicas con parámetros
         if (pathname.startsWith('/usuarios/')) {
             document.title = 'SkillSwap — Perfil de Usuario';
+            return;
+        }
+        if (pathname.startsWith('/chat/') && pathname !== ROUTES.CHAT) {
+            document.title = 'SkillSwap — Conversación';
             return;
         }
         document.title = titles[pathname] || base;
@@ -88,12 +93,12 @@ function App() {
                 <Route element={<PrivateLayout />}>
                     <Route path={ROUTES.HOME} element={<ProtectedRoute element={<MatchesPage />} />} />
                     <Route path={ROUTES.PROFILE} element={<ProtectedRoute element={<ProfilePage />} />} />
-                    <Route path="/usuarios/:id" element={<ProtectedRoute element={<ProfilePage />} />} />
+                    <Route path={ROUTES.USUARIO_BY_ID_PATTERN} element={<ProtectedRoute element={<ProfilePage />} />} />
                     <Route path={ROUTES.SEARCH} element={<ProtectedRoute element={<SearchPage />} />} />
                     <Route path={ROUTES.NOTIFICATIONS} element={<ProtectedRoute element={<NotificationsPage />} />} />
                     <Route path={ROUTES.FRIENDS} element={<ProtectedRoute element={<FriendsPage />} />} />
                     <Route path={ROUTES.CHAT} element={<ProtectedRoute element={<ChatPage />} />} />
-                    <Route path="/chat/:conversacionId" element={<ProtectedRoute element={<ChatPage />} />} />
+                    <Route path={ROUTES.CHAT_CONVERSACION_PATTERN} element={<ProtectedRoute element={<ChatPage />} />} />
                 </Route>
 
                 {/* 404 */}
