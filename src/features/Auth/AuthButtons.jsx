@@ -40,16 +40,6 @@ const AuthButtons = ({ loginPath = ROUTES.LOGIN, registerPath = ROUTES.REGISTER 
             >
                 REGISTRARSE
             </Button>
-
-            {/* Botón adicional para login rápido en desarrollo */}
-            <Button
-                variant="text"
-                color="inherit"
-                size="small"
-                onClick={handleQuickLogin}
-            >
-                [Login Rápido (Desarrollo)]
-            </Button>
         </Stack>
     );
 };

@@ -1,4 +1,8 @@
-import { Box, Paper, TextField, IconButton, CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import SendIcon from '@mui/icons-material/Send';
 
 /**

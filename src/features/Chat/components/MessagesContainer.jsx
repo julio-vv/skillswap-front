@@ -1,4 +1,4 @@
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import { DateDivider } from './DateDivider';
 import { MessageBubble } from './MessageBubble';
 

@@ -15,7 +15,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routePaths';
 import { useConversations } from '../../Chat/hooks/useConversations';
-import { CircularProgress } from '@mui/material';
+import CircularProgress from '@mui/material/CircularProgress';
 
 /**
  * Componente para mostrar un amigo/match

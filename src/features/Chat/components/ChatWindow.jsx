@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Box, Divider } from '@mui/material';
+import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import { useMessages } from '../hooks/useMessages';
 import { useAutoScroll } from '../hooks/useAutoScroll';
 import { useMessageFormatting } from '../hooks/useMessageFormatting';

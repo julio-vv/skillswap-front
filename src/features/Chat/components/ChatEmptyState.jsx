@@ -1,4 +1,6 @@
-import { Box, Typography, CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import CircularProgress from '@mui/material/CircularProgress';
 
 /**
  * Estados de carga y vacío del chat

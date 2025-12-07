@@ -1,12 +1,9 @@
 import { useState, Suspense, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import {
-    Box,
-    Paper,
-    CircularProgress,
-    useMediaQuery,
-    useTheme
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
+import { useMediaQuery, useTheme } from '@mui/material';
 import { ConversationsList } from './components/ConversationsList';
 import { ChatWindow } from './components/ChatWindow';
 import { useConversations } from './hooks/useConversations';

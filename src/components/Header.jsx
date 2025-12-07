@@ -17,6 +17,7 @@ import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';
 import { useNotifications } from '../features/Notifications/hooks/useNotifications';
+import { useToast } from '../context/ToastContext';
 // axiosInstance se cargará dinámicamente sólo cuando se use logout
 import { AUTH } from '../constants/apiEndpoints';
 import { ROUTES } from '../constants/routePaths';
@@ -25,6 +26,7 @@ const Header = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
     const { unreadCount } = useNotifications();
+    const { showToast } = useToast();
     // TODO: Debuggear useConversations
     const unreadMessages = 0;
 
@@ -40,13 +42,15 @@ const Header = () => {
             }
             // Limpiar el estado local y redirigir
             logout(); // Esto elimina el token del localStorage y actualiza el estado
-            navigate(ROUTES.LOGIN);
+            showToast('Sesión cerrada correctamente', 'success');
+            navigate('/');
 
         } catch (error) {
             // Si el logout de la API falla (ej. token ya inválido), aún debemos limpiar el frontend
             console.error("Error al notificar logout a la API, limpiando localmente.", error);
             logout();
-            navigate(ROUTES.LOGIN);
+            showToast('Sesión cerrada correctamente', 'success');
+            navigate('/');
         }
     };
 

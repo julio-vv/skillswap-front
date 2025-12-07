@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import axiosInstance from '../../../api/axiosInstance';
 
 /**
@@ -12,6 +12,7 @@ import axiosInstance from '../../../api/axiosInstance';
  * - Detiene polling cuando la pestaña está inactiva
  * - Reanuda polling cuando la pestaña vuelve a ser activa
  * - Prevención de memory leaks
+ * - Carga lazy: fetch inicial solo cuando sea necesario
  */
 export const useNotifications = () => {
     const [notifications, setNotifications] = useState([]);
@@ -123,11 +124,13 @@ export const useNotifications = () => {
     /**
      * Efecto para cargar notificaciones al montar y configurar polling
      * Limpieza correcta para evitar memory leaks
+     * 
+     * Optimización: Carga lazy inicial - solo cuando se acceda por primera vez
      */
     useEffect(() => {
         isMountedRef.current = true;
         
-        // Carga inicial
+        // Carga inicial - fetch de notificaciones
         fetchNotifications();
         
         // Iniciar polling

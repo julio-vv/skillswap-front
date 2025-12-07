@@ -1,4 +1,9 @@
-import { Box, Paper, Typography, Avatar, IconButton, CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 
 /**
  * Header del chat con información del usuario
