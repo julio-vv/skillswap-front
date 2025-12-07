@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 
 export default defineConfig({
+  base: '/skillswap-front/',
   plugins: [react()],
   server: {
     host: true, // Necesario para Docker
