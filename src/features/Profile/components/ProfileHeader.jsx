@@ -25,7 +25,8 @@ const ProfileHeader = ({
     onStartChat,
     onRemoveFriend,
     matchStatus,
-    isSendingRequest 
+    isSendingRequest,
+    isStartingChat 
 }) => {
     return (
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={3}>
@@ -60,10 +61,11 @@ const ProfileHeader = ({
                                     <Button
                                         variant="contained"
                                         color="primary"
-                                        startIcon={<ChatIcon />}
+                                        startIcon={isStartingChat ? <CircularProgress size={20} color="inherit" /> : <ChatIcon />}
                                         onClick={onStartChat}
+                                        disabled={isStartingChat}
                                     >
-                                        Enviar mensaje
+                                        {isStartingChat ? 'Abriendo...' : 'Enviar mensaje'}
                                     </Button>
                                 )}
                                 {onRemoveFriend && (

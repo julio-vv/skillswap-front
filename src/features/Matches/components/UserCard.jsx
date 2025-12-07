@@ -122,4 +122,4 @@ function UserCard({ user, habilidadesOfrecer, habilidadesBuscar, tipo, onClick }
     );
 }
 
-export default UserCard;
+export default React.memo(UserCard);

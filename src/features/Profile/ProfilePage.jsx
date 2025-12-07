@@ -51,6 +51,7 @@ const ProfilePage = () => {
         handleRemoveFriend,
         setMatchStatus,
         setPendingRequestId,
+        startingChat,
     } = useProfileActions(urlUserId, user, fetchProfile);
 
     // Determinar si estamos viendo nuestro propio perfil
@@ -175,6 +176,7 @@ const ProfilePage = () => {
                     onRemoveFriend={!isOwnProfile ? handleRemoveFriend : undefined}
                     matchStatus={matchStatus}
                     isSendingRequest={actionLoading !== null}
+                    isStartingChat={startingChat}
                 />
 
                 {profileError && <Alert severity="error" sx={{ mb: 2 }}>{profileError}</Alert>}

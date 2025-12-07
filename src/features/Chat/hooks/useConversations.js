@@ -192,13 +192,48 @@ export const useConversations = () => {
         }
     }, []);
 
-    // Polling cada 60 segundos para actualizar conversaciones (modo silencioso)
+    // Polling cada 120 segundos; pausa cuando la pestaña está oculta
     useEffect(() => {
-        const interval = setInterval(() => {
-            fetchConversations(true); // true = silent mode
-        }, 60000); // 60 segundos
+        let intervalId = null;
 
-        return () => clearInterval(interval);
+        const startPolling = () => {
+            if (intervalId) return;
+            intervalId = setInterval(() => {
+                // Solo refrescar si la pestaña está visible
+                if (!document.hidden) {
+                    fetchConversations(true); // true = silent mode
+                }
+            }, 120000); // 120 segundos
+        };
+
+        const stopPolling = () => {
+            if (intervalId) {
+                clearInterval(intervalId);
+                intervalId = null;
+            }
+        };
+
+        const handleVisibilityChange = () => {
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                // Hacer un fetch inmediato al volver y reanudar
+                fetchConversations(true);
+                startPolling();
+            }
+        };
+
+        // Iniciar polling sólo si la pestaña está visible
+        if (!document.hidden) {
+            startPolling();
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            stopPolling();
+        };
     }, [fetchConversations]);
 
     return {
