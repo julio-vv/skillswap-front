@@ -39,6 +39,13 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => response,
     (error) => {
+        // Ignorar errores de cancelación (AbortController)
+        // Estos son normales cuando el usuario navega rápidamente o el componente se desmonta
+        const isCanceled = error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError';
+        if (isCanceled) {
+            return Promise.reject(error);
+        }
+
         const status = error.response?.status;
 
         // Si recibimos un 401 (token inválido o expirado), limpiamos la sesión
@@ -57,7 +64,7 @@ axiosInstance.interceptors.response.use(
             if (friendly) error._friendlyMessage = friendly;
         } catch {}
 
-        // Logs consistentes
+        // Logs consistentes (solo para errores reales, no cancelaciones)
         if (error.response) {
             console.error('API error:', status, error._friendlyMessage || ERROR_MESSAGES.unexpected);
         } else if (error.request) {
