@@ -1,21 +1,19 @@
-import React, { useState, useCallback } from 'react';
-import {
-    Card,
-    CardContent,
-    CardActions,
-    Typography,
-    Button,
-    Avatar,
-    Stack,
-    Box,
-    Chip
-} from '@mui/material';
+import React, { useState } from 'react';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import ChatIcon from '@mui/icons-material/Chat';
 import PersonIcon from '@mui/icons-material/Person';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routePaths';
 import { useConversations } from '../../Chat/hooks/useConversations';
-import CircularProgress from '@mui/material/CircularProgress';
 import { useToast } from '../../../context/ToastContext';
 
 /**
@@ -45,11 +43,11 @@ const FriendCard = ({ friend }) => {
     
     const friendFotoPerfil = media || foto_perfil;
 
-    const handleViewProfile = useCallback(() => {
+    const handleViewProfile = () => {
         navigate(ROUTES.USUARIO_BY_ID(friendId));
-    }, [friendId, navigate]);
+    };
 
-    const handleStartChat = useCallback(async () => {
+    const handleStartChat = async () => {
         try {
             setLoadingChat(true);
             const conversation = await getOrCreateConversation(friendId);
@@ -60,7 +58,7 @@ const FriendCard = ({ friend }) => {
         } finally {
             setLoadingChat(false);
         }
-    }, [friendId, navigate, getOrCreateConversation, showToast]);
+    };
 
     const getSkillLabel = (skill) => skill?.nombre || skill?.name || skill || '';
 

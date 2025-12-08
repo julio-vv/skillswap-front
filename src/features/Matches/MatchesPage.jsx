@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -20,9 +20,6 @@ export default function MatchesPage() {
     const navigate = useNavigate();
     const { showToast } = useToast();
     const [page, setPage] = useState({ mutual: 1, teach: 1, learn: 1 });
-    const [mutual, setMutual] = useState([]);
-    const [teach, setTeach] = useState([]);
-    const [learn, setLearn] = useState([]);
 
     const handleUserClick = useCallback((userId) => {
         navigate(ROUTES.USUARIO_BY_ID(userId));
@@ -33,17 +30,14 @@ export default function MatchesPage() {
             const res = await axiosInstance.get(USUARIOS.coincidencias, { signal });
             return res.data || [];
         },
-        [],
         { initialData: [] }
     );
 
-    useEffect(() => {
+    const { mutual, teach, learn } = useMemo(() => {
         if (Array.isArray(data)) {
-            const { mutual, teach, learn } = filterUsersByMatchType(data);
-            setMutual(mutual);
-            setTeach(teach);
-            setLearn(learn);
+            return filterUsersByMatchType(data);
         }
+        return { mutual: [], teach: [], learn: [] };
     }, [data]);
 
     useEffect(() => {

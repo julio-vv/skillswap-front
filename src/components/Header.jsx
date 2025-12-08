@@ -16,7 +16,7 @@ import ChatIcon from '@mui/icons-material/Chat';
 import LogoutIcon from '@mui/icons-material/ExitToApp';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../features/Auth/AuthContext';
-import { useNotifications } from '../features/Notifications/hooks/useNotifications';
+import { useNotificationsContext } from '../context/NotificationsContext';
 import { useConversations } from '../features/Chat/hooks/useConversations';
 import { useToast } from '../context/ToastContext';
 // axiosInstance se cargará dinámicamente sólo cuando se use logout
@@ -26,7 +26,7 @@ import { ROUTES } from '../constants/routePaths';
 const Header = () => {
     const navigate = useNavigate();
     const { logout } = useAuth();
-    const { unreadCount } = useNotifications();
+    const { unreadCount } = useNotificationsContext();
     // Modo ligero: solo para badge y sin polling extra
     const { totalUnread } = useConversations({ light: true, enablePolling: false });
     const { showToast } = useToast();

@@ -11,7 +11,7 @@ import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routePaths';
-import { getSkillName, formatSkillsForDisplay } from '../utils/skillsDisplay';
+import { formatSkillsForDisplay } from '../utils/skillsDisplay';
 
 /**
  * Componente reutilizable para mostrar una tarjeta de usuario

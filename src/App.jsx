@@ -1,5 +1,5 @@
-import React, { useEffect, lazy, Suspense, useCallback } from 'react';
-import { Routes, Route, Navigate, Outlet, useLocation, NavLink, useNavigate } from 'react-router-dom';
+import React, { useEffect, lazy, Suspense } from 'react';
+import { Routes, Route, Navigate, Outlet, useLocation, NavLink } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 import { useAuth } from './features/Auth/AuthContext';
@@ -16,21 +16,6 @@ const SearchPage = lazy(() => import('./features/Search/SearchPage'));
 const NotificationsPage = lazy(() => import('./features/Notifications/NotificationsPage'));
 const FriendsPage = lazy(() => import('./features/Friends/FriendsPage'));
 const ChatPage = lazy(() => import('./features/Chat/ChatPage'));
-
-// Hook para prefetch de páginas (mejora rendimiento)
-function usePrefetch() {
-    const navigate = useNavigate();
-    const prefetchRoute = useCallback((routePath) => {
-        // Prefetch mediante import dinámico cuando el usuario está inactivo
-        if ('requestIdleCallback' in window) {
-            requestIdleCallback(() => {
-                // Esto hace que el módulo se cargue en background
-            }, { timeout: 2000 });
-        }
-    }, []);
-    
-    return { prefetchRoute };
-}
 
 // Hook para actualizar el título de la pestaña según la ruta
 function usePageTitle() {

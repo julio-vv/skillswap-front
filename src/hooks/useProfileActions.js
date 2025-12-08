@@ -17,7 +17,7 @@ export const useProfileActions = (urlUserId, user, fetchProfile) => {
     const [startingChat, setStartingChat] = useState(false);
 
     /**
-     * Detectar si el usuario visto es amigo del usuario actual
+     * Detectar si el usuario visto es amigo del usuario actual (función pura)
      */
     const isFriend = (profileData) => {
         return profileData?.matches?.some(id => String(id) === String(user?.id));
@@ -27,7 +27,7 @@ export const useProfileActions = (urlUserId, user, fetchProfile) => {
      * Actualizar match status cuando hay cambios
      */
     const updateMatchStatus = useCallback((profileData, requests) => {
-        if (isFriend(profileData)) {
+        if (profileData?.matches?.some(id => String(id) === String(user?.id))) {
             setMatchStatus('matched');
             setPendingRequestId(null);
             return;

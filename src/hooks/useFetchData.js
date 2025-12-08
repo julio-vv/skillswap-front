@@ -6,7 +6,6 @@ import { useErrorHandler } from './useErrorHandler';
  * Previene memory leaks, evita race conditions y maneja errores de forma consistente
  * 
  * @param {Function} fetchFn - Función async que retorna los datos. Recibe signal como parámetro
- * @param {Array} dependencies - Dependencias del useEffect (como en useEffect normal)
  * @param {Object} options - Opciones adicionales
  *   - onSuccess: callback cuando los datos se cargan exitosamente
  *   - onError: callback cuando hay error
@@ -15,7 +14,6 @@ import { useErrorHandler } from './useErrorHandler';
  */
 export const useFetchData = (
   fetchFn,
-  dependencies = [],
   options = {}
 ) => {
   const { onSuccess, onError, initialData = null } = options;
@@ -64,7 +62,7 @@ export const useFetchData = (
   }, [fetchFn, clearError, handleError, onSuccess, onError]);
 
   /**
-   * Ejecutar fetch en el montaje y cuando cambien dependencias
+   * Ejecutar fetch solo al montar
    */
   useEffect(() => {
     mountedRef.current = true;
@@ -76,7 +74,8 @@ export const useFetchData = (
         controllerRef.current.abort();
       }
     };
-  }, dependencies);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /**
    * Función para refetch manual

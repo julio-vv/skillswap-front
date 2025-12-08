@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import axiosInstance from '../api/axiosInstance';
 import { useErrorHandler } from './useErrorHandler';
-import { formatProfileDataForForm } from '../utils/formatProfileDataForForm';
 import { AUTH, USUARIOS, HABILIDADES, TIPOS_HABILIDAD } from '../constants/apiEndpoints';
 
 /**

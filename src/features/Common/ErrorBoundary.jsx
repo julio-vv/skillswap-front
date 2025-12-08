@@ -38,7 +38,7 @@ export default class ErrorBoundary extends React.Component {
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               Se produjo un error al renderizar la aplicación. Puedes intentar recargar.
             </Typography>
-            {process.env.NODE_ENV !== 'production' && this.state.error && (
+            {import.meta.env.MODE !== 'production' && this.state.error && (
               <Alert severity="error" sx={{ mb: 2, textAlign: 'left' }}>
                 <Typography variant="caption">{String(this.state.error)}</Typography>
               </Alert>

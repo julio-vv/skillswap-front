@@ -1,16 +1,14 @@
-import React, { useCallback } from 'react';
-import {
-    Card,
-    CardContent,
-    CardActions,
-    Typography,
-    Button,
-    Avatar,
-    Stack,
-    Box,
-    Chip,
-    CircularProgress
-} from '@mui/material';
+import React from 'react';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import CardActions from '@mui/material/CardActions';
+import Typography from '@mui/material/Typography';
+import Button from '@mui/material/Button';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonIcon from '@mui/icons-material/Person';
@@ -49,9 +47,9 @@ const MatchRequestCard = ({ request, onAccept, onReject, isProcessing }) => {
     
     const fotoPerfil = media || foto_perfil;
 
-    const handleViewProfile = useCallback(() => {
+    const handleViewProfile = () => {
         navigate(ROUTES.USUARIO_BY_ID(emisorId));
-    }, [emisorId, navigate]);
+    };
 
     const resolveSkillKey = (habilidad, idx) => {
         if (habilidad && typeof habilidad === 'object') {
@@ -67,13 +65,13 @@ const MatchRequestCard = ({ request, onAccept, onReject, isProcessing }) => {
         return String(habilidad || '');
     };
 
-    const handleAccept = useCallback(() => {
+    const handleAccept = () => {
         onAccept(id);
-    }, [id, onAccept]);
+    };
 
-    const handleReject = useCallback(() => {
+    const handleReject = () => {
         onReject(id);
-    }, [id, onReject]);
+    };
 
     return (
         <Card 

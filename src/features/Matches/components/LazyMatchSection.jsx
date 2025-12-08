@@ -6,22 +6,23 @@ import Stack from '@mui/material/Stack';
 // Lazy load MatchSection para mejorar rendimiento inicial
 const MatchSection = lazy(() => import('./MatchSection'));
 
+// Componente de skeleton fuera del render
+const SkeletonLoader = () => (
+    <Box sx={{ mb: 4 }}>
+        <Skeleton variant="text" width="200px" sx={{ mb: 2 }} />
+        <Stack spacing={2}>
+            {[1, 2, 3].map((i) => (
+                <Skeleton key={i} variant="rectangular" height={150} />
+            ))}
+        </Stack>
+    </Box>
+);
+
 /**
  * Wrapper para MatchSection con lazy loading
  * Muestra skeleton mientras carga el componente
  */
 export const LazyMatchSection = ({ tipo, users, hasMore, onLoadMore, onUserClick, fullWidth }) => {
-    const SkeletonLoader = () => (
-        <Box sx={{ mb: 4 }}>
-            <Skeleton variant="text" width="200px" sx={{ mb: 2 }} />
-            <Stack spacing={2}>
-                {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} variant="rectangular" height={150} />
-                ))}
-            </Stack>
-        </Box>
-    );
-
     return (
         <Suspense fallback={<SkeletonLoader />}>
             <MatchSection

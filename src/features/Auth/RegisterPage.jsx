@@ -29,7 +29,8 @@ import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMes
 import { AUTH } from '../../constants/apiEndpoints';
 import { ROUTES } from '../../constants/routePaths';
 
-const RegisterPage = () => {
+'use no memo';
+function RegisterPage() {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
     const [showPassword1, setShowPassword1] = useState(false);
@@ -248,6 +249,6 @@ const RegisterPage = () => {
             </Box>
         </Container>
     );
-};
+}
 
 export default RegisterPage;

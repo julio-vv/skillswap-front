@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useCallback, useRef, useEffect, useReducer } from 'react';
 import axiosInstance from '../api/axiosInstance';
+import { useAuth } from '../features/Auth/AuthContext';
 import { NOTIFICACIONES } from '../constants/apiEndpoints';
 
 /**
@@ -44,6 +45,7 @@ const notificationsReducer = (state, action) => {
 };
 
 export const NotificationsProvider = ({ children }) => {
+    const { isAuthenticated } = useAuth();
     const [state, dispatch] = useReducer(notificationsReducer, {
         notifications: [],
         unreadCount: 0,
@@ -110,9 +112,14 @@ export const NotificationsProvider = ({ children }) => {
     }, []);
 
     /**
-     * Cleanup
+     * Setup polling solo si está autenticado
      */
     useEffect(() => {
+        // Solo hacer polling si está autenticado
+        if (!isAuthenticated) {
+            return;
+        }
+
         // Carga inicial
         fetchNotifications();
 
@@ -150,9 +157,14 @@ export const NotificationsProvider = ({ children }) => {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
             stopPolling();
+        };
+    }, [isAuthenticated, fetchNotifications]);
+
+    useEffect(() => {
+        return () => {
             isMountedRef.current = false;
         };
-    }, [fetchNotifications]);
+    }, []);
 
     const value = {
         notifications: state.notifications,

@@ -30,11 +30,12 @@ axiosPublic.interceptors.response.use(
             console.error('Error:', error.message || ERROR_MESSAGES.unexpected);
         }
 
-        // Podríamos mapear y adjuntar un mensaje amigable en error._friendlyMessage
         try {
             const friendly = error.response?.data ? extractApiErrorMessage(error.response.data) : null;
             if (friendly) error._friendlyMessage = friendly;
-        } catch {}
+        } catch {
+            // Ignorar errores al extraer mensaje amigable
+        }
 
         return Promise.reject(error);
     }

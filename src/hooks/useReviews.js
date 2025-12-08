@@ -42,7 +42,7 @@ export const useReviews = (profileUserId, currentUserId) => {
                         try {
                             const userResp = await axiosInstance.get(USUARIOS.detalle(review.evaluador));
                             newEvaluadoresInfo[review.evaluador] = userResp.data;
-                        } catch (e) {
+                        } catch {
                             // Silenciosamente ignorar si no se carga la info del usuario
                             newEvaluadoresInfo[review.evaluador] = null;
                         }

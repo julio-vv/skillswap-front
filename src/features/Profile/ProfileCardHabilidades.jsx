@@ -8,8 +8,8 @@ import { useFormContext } from 'react-hook-form';
 import { formatProfileDataForForm } from '../../utils/formatProfileDataForForm';
 import SkillSelector from './components/SkillSelector';
 
-const ProfileCardHabilidades = ({ profileData, isEditing, allSkills, skillTypes }) => {
-    const { control, register, formState: { errors }, setValue } = useFormContext();
+const ProfileCardHabilidades = ({ profileData, isEditing, allSkills }) => {
+    const { control, formState: { errors }, setValue } = useFormContext();
 
     // Precargar habilidades cuando entra en modo edición
     useEffect(() => {

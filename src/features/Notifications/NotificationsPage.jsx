@@ -1,18 +1,16 @@
 import React from 'react';
-import {
-    Box,
-    Container,
-    Typography,
-    Paper,
-    CircularProgress,
-    Alert,
-    Snackbar,
-    Stack,
-    Button
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Typography from '@mui/material/Typography';
+import Paper from '@mui/material/Paper';
+import CircularProgress from '@mui/material/CircularProgress';
+import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useMatchRequests } from './hooks/useMatchRequests';
 import MatchRequestCard from './components/MatchRequestCard';
-import RefreshIcon from '@mui/icons-material/Refresh';
 
 /**
  * Página principal de notificaciones

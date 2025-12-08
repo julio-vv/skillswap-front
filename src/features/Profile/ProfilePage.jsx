@@ -5,8 +5,7 @@ import Alert from '@mui/material/Alert';
 import Grid from '@mui/material/Grid';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useParams, useNavigate } from 'react-router-dom';
-import { ROUTES } from '../../constants/routePaths';
+import { useParams } from 'react-router-dom';
 import { profileSchema } from '../../schemas/profileSchema';
 import { useAuth } from '../Auth/AuthContext';
 import { useProfileData } from '../../hooks/useProfileData';
@@ -24,7 +23,6 @@ import ProfileCardReseñas from './ProfileCardReseñas';
 
 const ProfilePage = () => {
     const { id: urlUserId } = useParams();
-    const navigate = useNavigate();
     const { logout, user } = useAuth();
     const { showToast } = useToast();
     const [isEditing, setIsEditing] = useState(false);

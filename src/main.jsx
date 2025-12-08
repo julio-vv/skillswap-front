@@ -18,10 +18,10 @@ createRoot(document.getElementById('root')).render(
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ErrorBoundary>
-        <ToastProvider>
-          <NotificationsProvider>
-            <BrowserRouter>
-              <AuthProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <NotificationsProvider>
+              <BrowserRouter>
                 <Suspense
                   fallback={
                     <Box sx={{ display: 'grid', placeItems: 'center', minHeight: '100vh' }}>
@@ -31,10 +31,10 @@ createRoot(document.getElementById('root')).render(
                 >
                   <App />
                 </Suspense>
-              </AuthProvider>
-            </BrowserRouter>
-          </NotificationsProvider>
-        </ToastProvider>
+              </BrowserRouter>
+            </NotificationsProvider>
+          </ToastProvider>
+        </AuthProvider>
       </ErrorBoundary>
     </ThemeProvider>
   </StrictMode>,

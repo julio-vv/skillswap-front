@@ -16,11 +16,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useFormContext } from 'react-hook-form';
 
 const ProfileCardPersonal = ({ profileData, isEditing }) => {
-    const { register, formState: { errors }, setValue, watch, trigger } = useFormContext();
+    const { register, formState: { errors }, setValue } = useFormContext();
     const [previewImage, setPreviewImage] = useState(null);
-    const mediaField = watch('media');
-
-    const fallbackText = encodeURIComponent(profileData?.nombre?.charAt(0) || 'U');
 
     const getImageUrl = () => {
         if (previewImage) return previewImage;

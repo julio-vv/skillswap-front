@@ -49,8 +49,12 @@ axiosInstance.interceptors.response.use(
         const status = error.response?.status;
 
         // Si recibimos un 401 (token inválido o expirado), limpiamos la sesión
+        // Pero no en rutas públicas
         if (status === 401) {
-            if (!window.location.pathname.includes(ROUTES.LOGIN)) {
+            const publicRoutes = [ROUTES.LOGIN, ROUTES.REGISTER, ROUTES.ROOT];
+            const isPublicRoute = publicRoutes.some(route => window.location.pathname.includes(route));
+            
+            if (!isPublicRoute) {
                 console.warn('Token inválido o expirado. Cerrando sesión...');
                 localStorage.removeItem('skillswap_token');
                 localStorage.removeItem('skillswap_user');
@@ -62,7 +66,9 @@ axiosInstance.interceptors.response.use(
         try {
             const friendly = error.response?.data ? extractApiErrorMessage(error.response.data) : null;
             if (friendly) error._friendlyMessage = friendly;
-        } catch {}
+        } catch {
+            // Ignorar errores al extraer mensaje amigable
+        }
 
         // Logs consistentes (solo para errores reales, no cancelaciones)
         if (error.response) {

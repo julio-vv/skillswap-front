@@ -12,10 +12,8 @@ import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import axiosInstance from '../../api/axiosInstance';
 import { useToast } from '../../context/ToastContext';
 import { useReviews } from '../../hooks/useReviews';
-import { VALORACIONES } from '../../constants/apiEndpoints';
 import { useAuth } from '../Auth/AuthContext';
 
 // Determinar el tamaño de la tarjeta según la longitud del comentario
