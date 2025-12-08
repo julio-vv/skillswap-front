@@ -9,20 +9,7 @@ const AuthButtons = ({ loginPath = ROUTES.LOGIN, registerPath = ROUTES.REGISTER 
     const navigate = useNavigate();
     const { login } = useAuth();
 
-    // Función para el inicio de sesión rápido en desarrollo
-    const handleQuickLogin = () => {
-        // Genera un token de prueba
-        const TEST_TOKEN = "TEST_TOKEN_DEVELOPER_SKILLSWAP_12345";
-        
-        // Usa la función de login del contexto para guardar el token
-        login(TEST_TOKEN); 
-
-        // Redirigir al home
-        navigate(ROUTES.HOME); 
-    };
-
     return (
-        // Stack organiza los botones verticalmente con espacio entre ellos
         <Stack spacing={2} sx={{ width: '100%', maxWidth: 300, mt: 4 }}>
             <Button
                 variant="contained"

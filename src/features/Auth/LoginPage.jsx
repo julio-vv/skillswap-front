@@ -41,16 +41,14 @@ const LoginPage = () => {
             // La API devuelve { "key": "<token>" }
             const token = response.data.key;
             
-            // El login ahora obtiene automáticamente los datos del usuario
+            // El login obtiene automáticamente los datos del usuario
             await login(token);
 
-            // Redirigir al usuario
             navigate(ROUTES.HOME); 
             
         } catch (err) {
             setLoading(false);
             
-            // Manejo de errores centralizado
             if (err.response?.data) {
                 const msg = extractApiErrorMessage(err.response.data);
                 showToast(msg || ERROR_MESSAGES.unexpected, 'error');

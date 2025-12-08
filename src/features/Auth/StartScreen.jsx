@@ -20,7 +20,7 @@ const StartScreen = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '100vh', // Ocupa toda la altura de la vista
+                minHeight: '100vh',
                 textAlign: 'center',
             }}
         >
@@ -32,7 +32,7 @@ const StartScreen = () => {
                 </Typography>
             </Box>
 
-            {/* Texto de bienvenida del mockup */}
+            {/* Texto de bienvenida */}
             <Typography variant="h5" component="p" sx={{ mb: 4 }}>
                 Intercambio colaborativo de conocimientos
             </Typography>
@@ -42,7 +42,7 @@ const StartScreen = () => {
                 <AuthButtons />
             </Box>
 
-            {/* Texto adicional de Copyright si es necesario */}
+            {/* Texto adicional de Copyright */}
             <Typography variant="body2" color="text.secondary" sx={{ mt: 5 }}>
                 © 2025 SkillSwap
             </Typography>

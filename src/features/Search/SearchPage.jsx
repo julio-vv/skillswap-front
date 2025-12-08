@@ -14,11 +14,13 @@ import UserCard from '../../components/UserCard';
 import { fetchSkillsMap } from '../../utils/skillsCache';
 
 /**
- * Página de búsqueda de usuarios
- * Optimizada:
- * - Sin descarga redundante de habilidades
- * - Componente UserCard memoizado reutilizable
- * - SearchPage memoizado con useCallback
+ * Página de búsqueda de usuarios con paginación.
+ * 
+ * Optimizaciones:
+ * - Mapa de habilidades cacheado a nivel global
+ * - Resultados renderizados con UserCard memoizado
+ * - useCallback para evitar re-renders de callbacks
+ * - useMemo para construir mapa de habilidades extendido
  */
 const SearchPage = () => {
     const {
@@ -34,33 +36,34 @@ const SearchPage = () => {
         handlePageChange,
     } = useSearch();
 
-    // Mapa global de habilidades (id -> nombre) desde caché compartido
     const [skillsMap, setSkillsMap] = useState(new Map());
 
+    // Cargar mapa de habilidades desde caché global
     useEffect(() => {
-        let isMounted = true;
+        const controller = new AbortController();
         (async () => {
             try {
                 const skillsObjectMap = await fetchSkillsMap();
-                if (!isMounted) return;
                 setSkillsMap(new Map(Object.entries(skillsObjectMap)));
             } catch (err) {
-                // Silencioso: si falla, se mostrarán IDs como fallback
-                console.error('Error cargando habilidades:', err);
+                if (err.name !== 'AbortError') {
+                    // Si falla la carga, continuamos sin el mapa cacheado
+                    // Los IDs se mostrarán como fallback
+                    console.error('Error al cargar mapa de habilidades:', err);
+                }
             }
         })();
 
         return () => {
-            isMounted = false;
+            controller.abort();
         };
     }, []);
 
     /**
-     * Construir mapa de habilidades desde usuarios
-     * Memoizado: solo se recalcula si searchResults cambia
+     * Construir mapa de habilidades extendido
+     * Combina el caché global con nombres embebidos en los usuarios
      */
     const skillsMapForRender = useMemo(() => {
-        // Construir un mapa extendido combinando el caché global + nombres embebidos
         const map = new Map(skillsMap);
 
         searchResults.forEach(user => {
@@ -192,4 +195,5 @@ const SearchPage = () => {
     );
 };
 
+SearchPage.displayName = 'SearchPage';
 export default React.memo(SearchPage);

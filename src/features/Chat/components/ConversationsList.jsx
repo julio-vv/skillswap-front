@@ -12,25 +12,42 @@ import {
     TextField,
     InputAdornment,
     Divider,
-    CircularProgress
+    CircularProgress,
+    Alert,
+    Button
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import { useConversations } from '../hooks/useConversations';
 
 /**
  * Componente para mostrar la lista de conversaciones
  */
 export const ConversationsList = ({ 
+    conversations = [],
+    loading = false,
+    error = null,
     selectedConversationId, 
-    onSelectConversation
+    onSelectConversation,
+    onRetry
 }) => {
     const [searchQuery, setSearchQuery] = useState('');
-    const { conversations, loading, error } = useConversations();
 
     if (loading) {
         return (
             <Box display="flex" justifyContent="center" alignItems="center" height="100%">
                 <CircularProgress />
+            </Box>
+        );
+    }
+
+    if (error) {
+        return (
+            <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100%" p={2}>
+                <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
+                    {error}
+                </Alert>
+                <Button variant="outlined" size="small" onClick={onRetry}>
+                    Reintentar
+                </Button>
             </Box>
         );
     }
@@ -61,6 +78,11 @@ export const ConversationsList = ({
             otherUser?.email?.toLowerCase().includes(searchLower)
         );
     });
+    
+    // Normalizar selectedConversationId a número para comparación consistente.
+    // Necesario porque conversationId puede venir como string desde la URL (?id=123)
+    // pero los IDs en conversations[] son numbers. Evita falsos negativos en isSelected.
+    const normalizedSelectedId = selectedConversationId ? Number(selectedConversationId) : null;
 
     return (
         <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -95,7 +117,7 @@ export const ConversationsList = ({
                 ) : (
                     filteredConversations.map((conversation, index) => {
                         const otherUser = conversation.otherUser;
-                        const isSelected = conversation.id === selectedConversationId;
+                        const isSelected = Number(conversation.id) === normalizedSelectedId;
                         const hasUnread = conversation.unreadCount > 0;
 
                         return (

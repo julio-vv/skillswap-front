@@ -106,21 +106,8 @@ export const useConversations = (options = {}) => {
                 new Date(b.actualizado_en) - new Date(a.actualizado_en)
             );
 
-            // Solo actualizar si hay cambios
-            setConversations(prevConversations => {
-                // Si cambió la cantidad de conversaciones, actualizar
-                if (prevConversations.length !== expandedConversations.length) {
-                    return expandedConversations;
-                }
-                // Comparar fecha de actualización de la primera conversación
-                const prevFirstUpdate = prevConversations[0]?.actualizado_en;
-                const newFirstUpdate = expandedConversations[0]?.actualizado_en;
-                if (prevFirstUpdate !== newFirstUpdate) {
-                    return expandedConversations;
-                }
-                // No hay cambios relevantes, mantener estado anterior
-                return prevConversations;
-            });
+            // Siempre actualizar para reflejar cambios en unreadCount, reordenamientos, etc.
+            setConversations(expandedConversations);
         } catch (err) {
             console.error('Error fetching conversations:', err);
             // Si el endpoint no existe (404), no mostrar error al usuario

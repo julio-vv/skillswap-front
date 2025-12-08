@@ -24,7 +24,9 @@ export const useMessageInput = (sendMessageFn, onMessageSent) => {
     };
 
     /**
-     * Maneja el evento de tecla (Enter para enviar)
+     * Maneja el evento de tecla para envío de mensajes.
+     * - Enter solo: envía el mensaje
+     * - Shift+Enter: salto de línea (comportamiento por defecto del textarea)
      */
     const handleKeyPress = (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {

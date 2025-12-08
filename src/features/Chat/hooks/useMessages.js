@@ -183,7 +183,7 @@ export const useMessages = (conversationId, onError) => {
             eventSourceRef.current.onmessage = (event) => {
                 try {
                     const msg = JSON.parse(event.data);
-                    console.log(`[SSE] Nuevo mensaje recibido (id=${msg.id}):`, msg.contenido.substring(0, 50));
+                    // console.log(`[SSE] Nuevo mensaje recibido (id=${msg.id}):`, msg.contenido.substring(0, 50));
                     
                     // Normalizar mensaje
                     const normalizedMsg = {

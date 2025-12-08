@@ -53,6 +53,20 @@ const MatchRequestCard = ({ request, onAccept, onReject, isProcessing }) => {
         navigate(ROUTES.USUARIO_BY_ID(emisorId));
     }, [emisorId, navigate]);
 
+    const resolveSkillKey = (habilidad, idx) => {
+        if (habilidad && typeof habilidad === 'object') {
+            return habilidad.id ?? habilidad.key ?? habilidad.value ?? `skill-${idx}`;
+        }
+        return habilidad ?? `skill-${idx}`;
+    };
+
+    const resolveSkillLabel = (habilidad) => {
+        if (habilidad && typeof habilidad === 'object') {
+            return habilidad.nombre || habilidad.nombre_habilidad || habilidad.name || String(habilidad.id ?? '');
+        }
+        return String(habilidad || '');
+    };
+
     const handleAccept = useCallback(() => {
         onAccept(id);
     }, [id, onAccept]);
@@ -102,8 +116,8 @@ const MatchRequestCard = ({ request, onAccept, onReject, isProcessing }) => {
                                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                     {habilidades_ofrecer.slice(0, 3).map((habilidad, index) => (
                                         <Chip 
-                                            key={index}
-                                            label={habilidad.nombre || habilidad}
+                                            key={resolveSkillKey(habilidad, index)}
+                                            label={resolveSkillLabel(habilidad)}
                                             size="small"
                                             color="primary"
                                             variant="outlined"
@@ -131,8 +145,8 @@ const MatchRequestCard = ({ request, onAccept, onReject, isProcessing }) => {
                                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                     {habilidades_aprender.slice(0, 3).map((habilidad, index) => (
                                         <Chip 
-                                            key={index}
-                                            label={habilidad.nombre || habilidad}
+                                            key={resolveSkillKey(habilidad, index)}
+                                            label={resolveSkillLabel(habilidad)}
                                             size="small"
                                             color="secondary"
                                             variant="outlined"

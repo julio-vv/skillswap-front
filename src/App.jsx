@@ -17,7 +17,7 @@ const NotificationsPage = lazy(() => import('./features/Notifications/Notificati
 const FriendsPage = lazy(() => import('./features/Friends/FriendsPage'));
 const ChatPage = lazy(() => import('./features/Chat/ChatPage'));
 
-// Hook para prefetch de páginas (mejora rendimiento perceived)
+// Hook para prefetch de páginas (mejora rendimiento)
 function usePrefetch() {
     const navigate = useNavigate();
     const prefetchRoute = useCallback((routePath) => {
@@ -104,7 +104,7 @@ function App() {
                 <Route path={ROUTES.LOGIN} element={<LoginPage />} />
                 <Route path={ROUTES.REGISTER} element={<RegisterPage />} />
 
-                {/* Privado con layout */}
+                {/* Privado */}
                 <Route element={<PrivateLayout />}>
                     <Route path={ROUTES.HOME} element={<ProtectedRoute element={<MatchesPage />} />} />
                     <Route path={ROUTES.PROFILE} element={<ProtectedRoute element={<ProfilePage />} />} />

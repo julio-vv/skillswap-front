@@ -16,12 +16,14 @@ export default function ChatPage() {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { conversacionId } = useParams();
-    const [selectedConversation, setSelectedConversation] = useState(conversacionId || null);
-    const { conversations } = useConversations();
+    // Normalizar conversationId a número (puede venir como string desde URL)
+    const initialId = conversacionId ? Number(conversacionId) : null;
+    const [selectedConversation, setSelectedConversation] = useState(initialId);
+    const { conversations, loading, error, fetchConversations } = useConversations();
 
     // Obtener el usuario de la conversación seleccionada
     const selectedConversationData = useMemo(() => {
-        return conversations.find(conv => conv.id === selectedConversation);
+        return conversations.find(conv => String(conv.id) === String(selectedConversation));
     }, [conversations, selectedConversation]);
 
     return (
@@ -45,9 +47,13 @@ export default function ChatPage() {
             >
                 <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flex: 1 }}><CircularProgress /></Box>}>
                     <ConversationsList
+                        conversations={conversations}
+                        loading={loading}
+                        error={error}
                         onSelectConversation={(convId) => {
                             setSelectedConversation(convId);
                         }}
+                        onRetry={fetchConversations}
                         selectedConversationId={selectedConversation}
                     />
                 </Suspense>

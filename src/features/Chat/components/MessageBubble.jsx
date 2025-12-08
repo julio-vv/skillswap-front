@@ -51,7 +51,10 @@ export const MessageBubble = memo(({ message, isOwnMessage, formatMessageDate })
         </Box>
     );
 }, (prevProps, nextProps) => {
-    // Retornar true si son iguales (no re-renderizar)
+    // Comparación personalizada para evitar re-renders innecesarios.
+    // Retorna true si props son iguales (NO re-renderizar), false para actualizar.
+    // Verifica id (inmutable), contenido y fecha (pueden cambiar en ediciones/actualizaciones),
+    // e isOwnMessage (relevante para alineación y estilos).
     return prevProps.message.id === nextProps.message.id &&
            prevProps.isOwnMessage === nextProps.isOwnMessage &&
            prevProps.message.contenido === nextProps.message.contenido &&

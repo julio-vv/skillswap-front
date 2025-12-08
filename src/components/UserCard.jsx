@@ -1,15 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import {
-    Card,
-    CardContent,
-    Avatar,
-    Stack,
-    Box,
-    Chip,
-    Grid,
-    IconButton,
-    Typography
-} from '@mui/material';
+import Card from '@mui/material/Card';
+import CardContent from '@mui/material/CardContent';
+import Avatar from '@mui/material/Avatar';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Grid from '@mui/material/Grid';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../constants/routePaths';
@@ -33,7 +31,7 @@ const UserCard = React.memo(({
 }) => {
     const navigate = useNavigate();
     
-    // Destructuring con valores por defecto
+    // Deconstruyendo con valores por defecto
     const {
         id,
         nombre = 'Usuario',

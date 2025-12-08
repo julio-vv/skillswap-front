@@ -1,5 +1,4 @@
 // Endpoints centralizados de la API
-// filepath: c:\Proyectos\SkillSwap-front\src\constants\apiEndpoints.js
 
 export const AUTH = {
   LOGIN: 'auth/login/',

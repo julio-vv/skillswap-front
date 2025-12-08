@@ -1,5 +1,4 @@
-// Mensajes de error centralizados para reutilización y traducción
-// filepath: c:\Proyectos\SkillSwap-front\src\constants\errorMessages.js
+// Mensajes de error centralizados para reutilización
 
 export const ERROR_MESSAGES = {
   unexpected: 'Ha ocurrido un error inesperado',

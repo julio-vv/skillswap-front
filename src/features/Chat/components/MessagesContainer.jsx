@@ -43,9 +43,12 @@ export const MessagesContainer = ({
                 <Box key={group.dateKey}>
                     <DateDivider dateKey={group.dateKey} />
                     {group.messages.map((message) => {
-                        const isOwnMessage = (typeof message.remitente === 'object' 
+                        // Normalizar remitente: puede venir como ID (number) o como objeto completo {id, nombre, ...}
+                        // Esto maneja ambos formatos sin duplicación de datos
+                        const remitenteId = typeof message.remitente === 'object' 
                             ? message.remitente.id 
-                            : message.remitente) === currentUserId;
+                            : message.remitente;
+                        const isOwnMessage = remitenteId === currentUserId;
 
                         return (
                             <MessageBubble

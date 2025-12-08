@@ -19,6 +19,7 @@ export const useFriends = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const isMountedRef = useRef(true);
+    const controllerRef = useRef(null);
 
     /**
      * Obtiene la lista de amigos del usuario autenticado
@@ -27,21 +28,30 @@ export const useFriends = () => {
     const fetchFriends = useCallback(async () => {
         try {
             setLoading(true);
+            setError(null);
+
+            // Cancelar petición previa si sigue en vuelo
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
+            const controller = new AbortController();
+            controllerRef.current = controller;
             
             // Obtener usuario autenticado y habilidades en paralelo
             const [authResponse, skillsMap] = await Promise.all([
-                axiosInstance.get(AUTH.USER),
+                axiosInstance.get(AUTH.USER, { signal: controller.signal }),
                 fetchSkillsMap()
             ]);
             
             const userId = authResponse.data.id;
             
             // Obtener perfil del usuario (incluye matches)
-            const userResponse = await axiosInstance.get(USUARIOS.detalle(userId));
+            const userResponse = await axiosInstance.get(USUARIOS.detalle(userId), { signal: controller.signal });
             const userData = userResponse.data;
             const matchIds = userData.matches || [];
+            const uniqueMatchIds = [...new Set(matchIds)];
             
-            if (matchIds.length === 0) {
+            if (uniqueMatchIds.length === 0) {
                 if (isMountedRef.current) {
                     setFriends([]);
                     setError(null);
@@ -52,9 +62,9 @@ export const useFriends = () => {
             
             // Obtener datos de todos los amigos en paralelo
             const friendsData = await Promise.all(
-                matchIds.map(async (friendId) => {
+                uniqueMatchIds.map(async (friendId) => {
                     try {
-                        const friendResponse = await axiosInstance.get(USUARIOS.detalle(friendId));
+                        const friendResponse = await axiosInstance.get(USUARIOS.detalle(friendId), { signal: controller.signal });
                         const friendData = friendResponse.data;
                         
                         return {
@@ -69,6 +79,8 @@ export const useFriends = () => {
                             )
                         };
                     } catch (err) {
+                        const isCanceled = err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED';
+                        if (isCanceled) return null;
                         console.error(`Error fetching friend ${friendId}:`, err);
                         return null;
                     }
@@ -83,6 +95,8 @@ export const useFriends = () => {
                 setError(null);
             }
         } catch (err) {
+            const isCanceled = err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED';
+            if (isCanceled) return;
             const errorMessage = err.response?.data?.message || 'Error al cargar amigos';
             if (isMountedRef.current) {
                 setError(errorMessage);
@@ -105,6 +119,9 @@ export const useFriends = () => {
         
         return () => {
             isMountedRef.current = false;
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
         };
     }, [fetchFriends]);
 

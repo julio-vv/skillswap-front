@@ -1,5 +1,4 @@
 // Rutas de navegación centralizadas
-// filepath: c:\Proyectos\SkillSwap-front\src\constants\routePaths.js
 
 export const ROUTES = {
   ROOT: '/',

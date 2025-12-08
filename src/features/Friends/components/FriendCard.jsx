@@ -16,6 +16,7 @@ import { useNavigate } from 'react-router-dom';
 import { ROUTES } from '../../../constants/routePaths';
 import { useConversations } from '../../Chat/hooks/useConversations';
 import CircularProgress from '@mui/material/CircularProgress';
+import { useToast } from '../../../context/ToastContext';
 
 /**
  * Componente para mostrar un amigo/match
@@ -27,6 +28,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 const FriendCard = ({ friend }) => {
     const navigate = useNavigate();
     const { getOrCreateConversation } = useConversations();
+    const { showToast } = useToast();
     const [loadingChat, setLoadingChat] = useState(false);
     
     // Propiedades del amigo
@@ -50,16 +52,17 @@ const FriendCard = ({ friend }) => {
     const handleStartChat = useCallback(async () => {
         try {
             setLoadingChat(true);
-            // Crear o obtener la conversación con este amigo
             const conversation = await getOrCreateConversation(friendId);
-            // Navegar a la conversación
             navigate(ROUTES.CHAT_CONVERSACION(conversation.id));
         } catch (error) {
             console.error('Error al iniciar chat:', error);
+            showToast('No se pudo abrir el chat. Intenta de nuevo.', 'error');
         } finally {
             setLoadingChat(false);
         }
-    }, [friendId, navigate, getOrCreateConversation]);
+    }, [friendId, navigate, getOrCreateConversation, showToast]);
+
+    const getSkillLabel = (skill) => skill?.nombre || skill?.name || skill || '';
 
     return (
         <Card 
@@ -102,8 +105,8 @@ const FriendCard = ({ friend }) => {
                                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                     {habilidades_ofrecer.slice(0, 3).map((habilidad, index) => (
                                         <Chip 
-                                            key={index}
-                                            label={habilidad.nombre || habilidad}
+                                            key={habilidad?.id || habilidad?.nombre || habilidad?.name || index}
+                                            label={getSkillLabel(habilidad)}
                                             size="small"
                                             color="primary"
                                             variant="outlined"
@@ -131,8 +134,8 @@ const FriendCard = ({ friend }) => {
                                 <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
                                     {habilidades_aprender.slice(0, 3).map((habilidad, index) => (
                                         <Chip 
-                                            key={index}
-                                            label={habilidad.nombre || habilidad}
+                                            key={habilidad?.id || habilidad?.nombre || habilidad?.name || index}
+                                            label={getSkillLabel(habilidad)}
                                             size="small"
                                             color="secondary"
                                             variant="outlined"

@@ -34,7 +34,7 @@ const SortableChip = ({ id, label, onDelete }) => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: 0.5,
-                touchAction: 'none', // Previene scroll en móviles al arrastrar
+                touchAction: 'none', // Permite drag sin activar scroll
             }}
         >
             {/* Indicador de arrastre */}

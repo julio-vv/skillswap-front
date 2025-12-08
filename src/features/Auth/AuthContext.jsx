@@ -17,35 +17,34 @@ const getStoredUser = () => {
 }
 
 export const AuthProvider = ({ children }) => {
-    // ESTADO PARA ALMACENAR LOS DATOS DEL USUARIO (incluyendo el ID)
+    // Estado de autenticación y datos del usuario
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [user, setUser] = useState(null);
-    const [isLoading, setIsLoading] = useState(true); // Para evitar parpadeo en la carga inicial
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const token = localStorage.getItem('skillswap_token');
-        const storedUser = getStoredUser(); // Intenta cargar el objeto de usuario
+        const storedUser = getStoredUser();
 
-        // Si hay token y usuario, asumimos que está autenticado
+        // Si hay token, asumimos que está autenticado
         // El interceptor de axios se encargará de limpiar si el token es inválido
         if (token) {
             setIsAuthenticated(true);
-            setUser(storedUser); // Establece los datos del usuario (puede ser null si no se guardó)
+            setUser(storedUser);
         } else {
             setIsAuthenticated(false);
             setUser(null);
         }
         
-        setIsLoading(false); // Terminó de verificar
+        setIsLoading(false);
     }, []);
 
-    // FUNCIÓN login mejorada: obtiene automáticamente los datos del usuario
     const login = async (token) => {
         localStorage.setItem('skillswap_token', token);
         setIsAuthenticated(true);
 
         try {
-            // Obtener datos del usuario inmediatamente después del login
+            // Fetch usuario tras validar token en backend
             const response = await axiosInstance.get(AUTH.USER);
             const userData = response.data;
             localStorage.setItem('skillswap_user', JSON.stringify(userData));
@@ -59,7 +58,6 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    // FUNCIÓN logout para limpiar los datos del usuario
     const logout = () => {
         localStorage.removeItem('skillswap_token');
         localStorage.removeItem('skillswap_user'); // Elimina los datos del usuario
@@ -68,7 +66,6 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     };
 
-    // VALOR DEL CONTEXTO: EXPONER 'user' e 'isLoading'
     return (
         <AuthContext.Provider value={{ isAuthenticated, user, login, logout, isLoading }}>
             {!isLoading && children}

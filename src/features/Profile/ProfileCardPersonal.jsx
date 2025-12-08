@@ -16,16 +16,12 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import { useFormContext } from 'react-hook-form';
 
 const ProfileCardPersonal = ({ profileData, isEditing }) => {
-    // Obtener las funciones de RHF del FormProvider del componente padre
     const { register, formState: { errors }, setValue, watch, trigger } = useFormContext();
     const [previewImage, setPreviewImage] = useState(null);
-    
-    // Observar el campo media para preview
     const mediaField = watch('media');
 
     const fallbackText = encodeURIComponent(profileData?.nombre?.charAt(0) || 'U');
-    
-    // Determinar la URL de la imagen a mostrar
+
     const getImageUrl = () => {
         if (previewImage) return previewImage;
         return profileData?.media;
@@ -36,15 +32,12 @@ const ProfileCardPersonal = ({ profileData, isEditing }) => {
     const handleFileChange = (e) => {
         const file = e.target.files?.[0];
         if (file) {
-            // Crear preview
             const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewImage(reader.result);
-            };
+            reader.onloadend = () => setPreviewImage(reader.result);
             reader.readAsDataURL(file);
             
-            // Actualizar el valor en RHF con el archivo y marcar como modificado
-            setValue('media', e.target.files, { shouldDirty: true, shouldValidate: true });
+            // Guardar archivo en RHF y marcar como modificado
+            setValue('media', file, { shouldDirty: true, shouldValidate: true });
         }
     };
 

@@ -20,11 +20,11 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod'; // Necesario para usar Zod con RHF
+import { zodResolver } from '@hookform/resolvers/zod'; // Integra validación Zod con React Hook Form
 // import axiosInstance from '../../api/axiosInstance';
 import axiosPublic from '../../api/axiosPublic';
 import { useToast } from '../../context/ToastContext';
-import { registerSchema } from '../../schemas/authSchema'; // Importamos el esquema Zod
+import { registerSchema } from '../../schemas/authSchema';
 import { ERROR_MESSAGES, extractApiErrorMessage } from '../../constants/errorMessages';
 import { AUTH } from '../../constants/apiEndpoints';
 import { ROUTES } from '../../constants/routePaths';
@@ -36,7 +36,7 @@ const RegisterPage = () => {
     const [showPassword2, setShowPassword2] = useState(false);
     const { showToast } = useToast();
 
-    // 1. Configurar React Hook Form con Zod Resolver
+    // Configurar React Hook Form con Zod Resolver
     const { register, handleSubmit, watch, formState: { errors } } = useForm({
         resolver: zodResolver(registerSchema),
         defaultValues: {
@@ -68,7 +68,6 @@ const RegisterPage = () => {
         setLoading(true);
 
         try {
-            // Llama al endpoint POST /auth/registration/
             const response = await axiosPublic.post(AUTH.REGISTRATION, {
                 email: data.email,
                 password1: data.password1,
@@ -77,13 +76,11 @@ const RegisterPage = () => {
                 apellido: data.apellido,
             });
 
-            // Si el registro es exitoso, la API devuelve el token
+            // Backend retorna el token tras registro exitoso
             const token = response.data.key;
-
-            // Guardar el token (se usará en el futuro para iniciar sesión automáticamente)
             localStorage.setItem('skillswap_token', token);
 
-            // Redirigir al usuario, quizás a una página de bienvenida o al perfil.
+            // Redirigir a home con flag para mostrar bienvenida
             navigate(ROUTES.HOME, { state: { registered: true } });
 
         } catch (err) {
@@ -124,9 +121,7 @@ const RegisterPage = () => {
                         error={!!errors.apellido} helperText={errors.apellido?.message}
                     />
 
-                    {/* Sección 2: Datos de Estudio */}
-
-                    {/* Sección 3: Credenciales */}
+                    {/* Sección 2: Credenciales */}
                     <Typography variant="subtitle1" sx={{ mt: 3, mb: 1 }}>
                         Credenciales
                     </Typography>

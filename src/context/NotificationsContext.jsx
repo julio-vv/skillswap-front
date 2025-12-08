@@ -4,7 +4,6 @@ import { NOTIFICACIONES } from '../constants/apiEndpoints';
 
 /**
  * Context centralizado para notificaciones
- * SIMPLIFICADO: Solo maneja el estado, sin polling complicado
  * El polling de solicitudes de match está en useMatchRequests.js
  */
 const NotificationsContext = createContext(null);

@@ -6,10 +6,6 @@ import { USUARIOS } from '../constants/apiEndpoints';
 
 /**
  * Hook para manejar la lógica de búsqueda de usuarios
- * Optimizado:
- * - Memoización de totalPages
- * - AbortController para cancelar peticiones antiguas
- * - Prevención de memory leaks
  * 
  * @param {number} debounceDelay - Tiempo de espera para el debounce (default: 500ms)
  * @returns {Object} Estado y funciones para manejar la búsqueda

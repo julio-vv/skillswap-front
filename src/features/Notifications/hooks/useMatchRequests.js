@@ -22,7 +22,7 @@ export const useMatchRequests = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [actionLoading, setActionLoading] = useState(null); // ID de la solicitud en proceso
-    const isMountedRef = useRef(true);
+    const controllerRef = useRef(null);
 
     /**
      * Obtiene todas las solicitudes de match del usuario
@@ -33,75 +33,94 @@ export const useMatchRequests = () => {
      * Optimizado: Caché compartida de habilidades + llamadas en paralelo
      */
     const fetchRequests = useCallback(async () => {
+        // Cancelar petición previa si sigue en vuelo
+        if (controllerRef.current) {
+            controllerRef.current.abort();
+        }
+
+        const controller = new AbortController();
+        controllerRef.current = controller;
+
         try {
             setLoading(true);
-            
+            setError(null);
+
             // Obtener solicitudes y habilidades en paralelo
             const [response, skillsMap] = await Promise.all([
-                axiosInstance.get(SOLICITUDES_MATCH.listar),
+                axiosInstance.get(SOLICITUDES_MATCH.listar, { signal: controller.signal }),
                 fetchSkillsMap()
             ]);
-            
+
             const data = response.data;
-            
+
             // Filtrar solo solicitudes pendientes (estado indefinido) RECIBIDAS por el usuario actual
-            // El usuario debe ser el RECIPIENTE, no el emisor
-            const pendingRequests = data.filter(req => 
+            const pendingRequests = data.filter(req =>
                 (req.estado === 'indefinido' || req.estado === 'pendiente') &&
                 req.recipiente === user?.id
             );
-            
-            // Expandir datos del emisor para cada solicitud en paralelo
-            const requestsWithUserData = await Promise.all(
-                pendingRequests.map(async (request) => {
-                    try {
-                        // Obtener datos completos del usuario emisor
-                        const userResponse = await axiosInstance.get(USUARIOS.detalle(request.emisor));
-                        const userData = userResponse.data;
-                        
-                        return {
-                            ...request,
-                            emisor: {
-                                ...userData,
-                                habilidades_ofrecer: expandSkills(
-                                    userData.habilidades_que_se_saben,
-                                    skillsMap
-                                ),
-                                habilidades_aprender: expandSkills(
-                                    userData.habilidades_por_aprender,
-                                    skillsMap
-                                )
-                            }
-                        };
-                    } catch (err) {
-                        console.error(`Error fetching user ${request.emisor}:`, err);
-                        // Si falla, mantener la estructura básica
-                        return {
-                            ...request,
-                            emisor: {
-                                id: request.emisor,
-                                nombre: 'Usuario',
-                                apellido: '',
-                                habilidades_ofrecer: [],
-                                habilidades_aprender: []
-                            }
-                        };
+
+            // Fetch de emisores sin duplicar
+            const uniqueEmitterIds = Array.from(new Set(pendingRequests.map(req => req.emisor)));
+
+            const emitterEntries = await Promise.all(uniqueEmitterIds.map(async (emisorId) => {
+                try {
+                    const userResponse = await axiosInstance.get(USUARIOS.detalle(emisorId), { signal: controller.signal });
+                    return [emisorId, userResponse.data];
+                } catch (err) {
+                    const isCanceled = err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError';
+                    if (isCanceled) return [emisorId, null];
+                    console.error(`Error fetching user ${emisorId}:`, err);
+                    return [emisorId, null];
+                }
+            }));
+
+            const emitterMap = Object.fromEntries(emitterEntries);
+
+            const requestsWithUserData = pendingRequests.map((request) => {
+                const userData = emitterMap[request.emisor];
+
+                if (!userData) {
+                    return {
+                        ...request,
+                        emisor: {
+                            id: request.emisor,
+                            nombre: 'Usuario',
+                            apellido: '',
+                            habilidades_ofrecer: [],
+                            habilidades_aprender: []
+                        }
+                    };
+                }
+
+                return {
+                    ...request,
+                    emisor: {
+                        ...userData,
+                        habilidades_ofrecer: expandSkills(
+                            userData.habilidades_que_se_saben,
+                            skillsMap
+                        ),
+                        habilidades_aprender: expandSkills(
+                            userData.habilidades_por_aprender,
+                            skillsMap
+                        )
                     }
-                })
-            );
-            
-            if (isMountedRef.current) {
+                };
+            });
+
+            if (!controller.signal.aborted) {
                 setRequests(requestsWithUserData);
                 setError(null);
             }
         } catch (err) {
+            const isCanceled = err?.code === 'ERR_CANCELED' || err?.name === 'CanceledError';
+            if (isCanceled) return;
+
             const errorMsg = err.response?.data?.message || 'Error al cargar solicitudes';
-            if (isMountedRef.current) {
-                setError(errorMsg);
-            }
+            setError(errorMsg);
             console.error('Error fetching match requests:', err);
         } finally {
-            if (isMountedRef.current) {
+            if (!controller.signal.aborted) {
                 setLoading(false);
             }
         }
@@ -207,11 +226,12 @@ export const useMatchRequests = () => {
      * Limpieza correcta para evitar memory leaks
      */
     useEffect(() => {
-        isMountedRef.current = true;
         fetchRequests();
-        
+
         return () => {
-            isMountedRef.current = false;
+            if (controllerRef.current) {
+                controllerRef.current.abort();
+            }
         };
     }, [fetchRequests]);
 

@@ -19,11 +19,14 @@ import { ChatEmptyState } from './ChatEmptyState';
 export const ChatWindow = ({ conversationId, otherUser, onBack }) => {
     const { showToast } = useToast();
     
-    // Memoizar callback de error
+    // Callback memoizado para mostrar errores desde useMessages (SSE, envío, etc).
+    // Se pasa como dependencia al hook para que notifique al usuario en tiempo real.
     const handleError = useCallback((errorMsg) => {
         showToast(errorMsg, 'error', 5000);
     }, [showToast]);
     
+    // Orquesta la obtención de mensajes, manejo de SSE/polling y envío.
+    // Flujo: carga inicial → SSE en tiempo real → fallback a polling si es necesario.
     const { 
         messages, 
         loading, 

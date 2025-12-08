@@ -7,10 +7,12 @@ import {
     InputAdornment,
     CircularProgress,
     Paper,
-    Stack
+    Stack,
+    Button
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import PeopleIcon from '@mui/icons-material/People';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import { useToast } from '../../context/ToastContext';
 import { useFriends } from './hooks/useFriends';
 import FriendCard from './components/FriendCard';
@@ -21,7 +23,7 @@ import FriendCard from './components/FriendCard';
  * Permite iniciar chat con cada amigo
  */
 const FriendsPage = () => {
-    const { friends, loading, error } = useFriends();
+    const { friends, loading, error, fetchFriends } = useFriends();
     const { showToast } = useToast();
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -35,10 +37,12 @@ const FriendsPage = () => {
     /**
      * Filtra amigos según la búsqueda
      */
+    const searchLower = searchQuery.trim().toLowerCase();
     const filteredFriends = friends.filter(friend => {
-        const searchLower = searchQuery.toLowerCase();
-        const nombreCompleto = `${friend.nombre} ${friend.apellido}`.toLowerCase();
+        const nombre = (friend.nombre || '').toLowerCase();
+        const apellido = (friend.apellido || '').toLowerCase();
         const email = (friend.email || '').toLowerCase();
+        const nombreCompleto = `${nombre} ${apellido}`.trim();
         
         return nombreCompleto.includes(searchLower) || email.includes(searchLower);
     });
@@ -55,9 +59,9 @@ const FriendsPage = () => {
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
             {/* Header con título y contador */}
-            <Stack direction="row" alignItems="center" spacing={1} mb={3}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1} mb={3}>
                 <PeopleIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-                <Box>
+                <Box sx={{ flex: 1, ml: 1 }}>
                     <Typography variant="h4" fontWeight="bold">
                         Mis Amigos
                     </Typography>
@@ -65,6 +69,14 @@ const FriendsPage = () => {
                         {friends.length} {friends.length === 1 ? 'amigo' : 'amigos'}
                     </Typography>
                 </Box>
+                <Button
+                    variant="outlined"
+                    startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
+                    onClick={fetchFriends}
+                    disabled={loading}
+                >
+                    {loading ? 'Actualizando…' : 'Actualizar'}
+                </Button>
             </Stack>
 
             {/* Barra de búsqueda */}

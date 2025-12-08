@@ -6,10 +6,13 @@ import {
     Paper,
     CircularProgress,
     Alert,
-    Snackbar
+    Snackbar,
+    Stack,
+    Button
 } from '@mui/material';
 import { useMatchRequests } from './hooks/useMatchRequests';
 import MatchRequestCard from './components/MatchRequestCard';
+import RefreshIcon from '@mui/icons-material/Refresh';
 
 /**
  * Página principal de notificaciones
@@ -22,7 +25,8 @@ const NotificationsPage = () => {
         error,
         actionLoading,
         acceptRequest,
-        rejectRequest
+        rejectRequest,
+        fetchRequests
     } = useMatchRequests();
     
     const [snackbar, setSnackbar] = React.useState({ open: false, message: '', severity: 'success' });
@@ -90,18 +94,29 @@ const NotificationsPage = () => {
 
     return (
         <Container maxWidth="md" sx={{ py: 4 }}>
-            <Typography variant="h4" gutterBottom fontWeight="bold">
-                Notificaciones
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2} mb={2}>
+                <Box>
+                    <Typography variant="h4" fontWeight="bold">
+                        Notificaciones
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                        Solicitudes de Match ({requests.length})
+                    </Typography>
+                </Box>
+                <Button
+                    variant="outlined"
+                    startIcon={loading ? <CircularProgress size={16} /> : <RefreshIcon />}
+                    onClick={fetchRequests}
+                    disabled={loading}
+                >
+                    {loading ? 'Actualizando…' : 'Actualizar'}
+                </Button>
+            </Stack>
 
             {/* Solicitudes de Match Pendientes */}
-            <Box sx={{ mt: 4 }}>
-                <Typography variant="h5" gutterBottom fontWeight="600">
-                    Solicitudes de Match ({requests.length})
-                </Typography>
-                
+            <Box sx={{ mt: 2 }}>
                 {requests.length === 0 ? (
-                    <Paper sx={{ p: 6, textAlign: 'center', mt: 3 }}>
+                    <Paper sx={{ p: 6, textAlign: 'center', mt: 2 }}>
                         <Typography variant="h6" color="text.secondary" gutterBottom>
                             No tienes solicitudes de match pendientes
                         </Typography>
@@ -110,7 +125,7 @@ const NotificationsPage = () => {
                         </Typography>
                     </Paper>
                 ) : (
-                    <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
                         {requests.map(request => (
                             <MatchRequestCard
                                 key={request.id}
